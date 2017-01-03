@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include "blake2b.h"
 
 // Constant definition
 
@@ -43,7 +44,7 @@ static const size_t SIGMA[12][16] = {
            { 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3 }
        };
 
-static const uint64_t initialization_vector[8] = { 
+static const uint64_t IV[8] = { 
         0x6A09E667F3BCC908, 0xBB67AE8584CAA73B,
         0x3C6EF372FE94F82B, 0xA54FF53A5F1D36F1,
         0x510E527FADE682D1, 0x9B05688C2B3E6C1F,
@@ -54,33 +55,30 @@ static const uint64_t initialization_vector[8] = {
 
 #define ERROR(msg) {puts((char*)msg); exit(1);}
 #define ROT_SHIFT(array,offset) (((array) >> (offset)) ^ ((array) << (64 - (offset))))
-void G(uint64_t* work_vector, int a, int b, int c, int d, uint64_t x, uint64_t y);
-void F(uint64_t* h, uint64_t* m, uint64_t* t, int f );
-void blake2b( void* digest, size_t nn, void* data, size_t ll, void* key, size_t kk);
 
-// Test main to be commented when performing Argon2
+// These should not be necessary, since this is a library now
+void B2B_G(uint64_t* work_vector, int a, int b, int c, int d, uint64_t x, uint64_t y);
+void B2B_F(uint64_t* h, uint64_t* m, uint128_t t, int f );
 
-int main(int argc, char const *argv[])
+// This should be included from blake2b.h
+//void blake2b( void* digest, size_t nn, void* data, size_t ll, void* key, size_t kk);
+
+// Utility function, XOR of two uint128_t*
+
+void XOR(uint128_t* X, uint128_t* Y, uint128_t* xored, int n)
 {
-        unsigned char data[3] = {'a','b','c'};
-        unsigned char digest[64];
 
-        size_t nn = 64;
-        size_t ll = 3;
+        for (int i = 0; i < n; i++)
+        {
+                (*(xored+i)).left = ((*(X+i)).left) ^ ((*(Y+i)).left);
+                (*(xored+i)).right = ((*(X+i)).right) ^ ((*(Y+i)).right);
+        }
 
-        blake2b(digest,nn,data,ll,NULL,0);
-
-        printf("digest:\n");
-        for(int i = 0;i<nn;i++)
-                printf("%02X ",digest[i]);
-        printf("\n");
-
-        return 0;
 }
 
-// G [mixing function]
+// B2B_G [mixing function]
 
-void G(uint64_t* v, int a, int b, int c, int d, uint64_t x, uint64_t y){
+void B2B_G(uint64_t* v, int a, int b, int c, int d, uint64_t x, uint64_t y){
         v[a] = v[a] + v[b] + x;
         v[d] = ROT_SHIFT((v[d]^v[a]) , R1);
         v[c] = v[c] + v[d];
@@ -93,12 +91,12 @@ void G(uint64_t* v, int a, int b, int c, int d, uint64_t x, uint64_t y){
 
 // F [compression function]
 
-void F(uint64_t* h, uint64_t* m, uint64_t* t, int f ){
+void B2B_F(uint64_t* h, uint64_t* m, uint128_t t, int f ){
         // Initialize local work vectors
         uint64_t v[16];
         const size_t* s;
         memcpy(v,h,ww);
-        memcpy(v+8,initialization_vector,ww);
+        memcpy(v+8,IV,ww);
 
         v[12] ^= t[0];
         v[13] ^= t[1];
@@ -110,14 +108,14 @@ void F(uint64_t* h, uint64_t* m, uint64_t* t, int f ){
 
         for(int i = 0; i < r;i++){
 
-                G( v, 0, 4,  8, 12, m[SIGMA[i][ 0]], m[SIGMA[i][ 1]] );
-                G( v, 1, 5,  9, 13, m[SIGMA[i][ 2]], m[SIGMA[i][ 3]] );
-                G( v, 2, 6, 10, 14, m[SIGMA[i][ 4]], m[SIGMA[i][ 5]] );
-                G( v, 3, 7, 11, 15, m[SIGMA[i][ 6]], m[SIGMA[i][ 7]] );
-                G( v, 0, 5, 10, 15, m[SIGMA[i][ 8]], m[SIGMA[i][ 9]] );
-                G( v, 1, 6, 11, 12, m[SIGMA[i][10]], m[SIGMA[i][11]] );
-                G( v, 2, 7,  8, 13, m[SIGMA[i][12]], m[SIGMA[i][13]] );
-                G( v, 3, 4,  9, 14, m[SIGMA[i][14]], m[SIGMA[i][15]] );
+                B2B_G( v, 0, 4,  8, 12, m[SIGMA[i][ 0]], m[SIGMA[i][ 1]] );
+                B2B_G( v, 1, 5,  9, 13, m[SIGMA[i][ 2]], m[SIGMA[i][ 3]] );
+                B2B_G( v, 2, 6, 10, 14, m[SIGMA[i][ 4]], m[SIGMA[i][ 5]] );
+                B2B_G( v, 3, 7, 11, 15, m[SIGMA[i][ 6]], m[SIGMA[i][ 7]] );
+                B2B_G( v, 0, 5, 10, 15, m[SIGMA[i][ 8]], m[SIGMA[i][ 9]] );
+                B2B_G( v, 1, 6, 11, 12, m[SIGMA[i][10]], m[SIGMA[i][11]] );
+                B2B_G( v, 2, 7,  8, 13, m[SIGMA[i][12]], m[SIGMA[i][13]] );
+                B2B_G( v, 3, 4,  9, 14, m[SIGMA[i][14]], m[SIGMA[i][15]] );
 
         }
 
@@ -134,12 +132,16 @@ void blake2b( void* digest, size_t nn, void* data, size_t ll, void* key, size_t 
         // equivalent to ceil(ll/bb) + ceil(kk/bb)
         size_t dd = (ll/bb) + (ll%bb!=0) + (kk>0); 
         uint64_t h[8];
-        uint64_t t[2] = {0,0};
+        uint128_t t;
         uint8_t buffer[bb];
         
-        memcpy(h,initialization_vector,ww);
+        t.left = 0;
+        t.right = 0;
+        memcpy(h,IV,ww);
         h[0] = h[0] ^ 0x01010000 ^ (kk << 8) ^ nn;
 
+        // Questa la lasciamo per ora, può essere utile in fase di sviluppo, poi gli errori dovrebbero
+        // essere gestiti a monte quando si inizializza Argon2
         // Handle exceptions:
         if( nn<1 || nn > 64 || kk > 64 )
                 ERROR("Parameters out of bounds.\n");
@@ -150,7 +152,7 @@ void blake2b( void* digest, size_t nn, void* data, size_t ll, void* key, size_t 
                         puts("Warning: Unkeyed empty message.\n");
                         memset(buffer,0,bb);
                         t[0]+=bb;
-                        F(h,(uint64_t*)buffer,t,1);
+                        B2B_F(h,(uint64_t*)buffer,t,1);
                         memcpy(digest,h,nn);
                         return;
                 }else
@@ -162,26 +164,26 @@ void blake2b( void* digest, size_t nn, void* data, size_t ll, void* key, size_t 
         if(kk>0){
                 memcpy(buffer,key,kk);          // Load key in buffer
                 memset(buffer+kk,0,bb-kk);      // Pad key with zeros
-                t[0]+=bb;                       // Update data offset
-                F(h,(uint64_t*)buffer,t,0);     // Apply compression
+                t.left+=bb;                       // Update data offset
+                B2B_F(h,(uint64_t*)buffer,t,0);     // Apply compression
         }
 
         // Compress data, except last block
         for(size_t block_counter = 0;block_counter < dd-1; block_counter++){
                 memcpy(buffer,data+bb*block_counter,bb);        // Load data block in buffer
-                t[0]+=bb;                                       // Update data offset
-                if(t[0]<bb)                                     // Manage carry
-                        t[1]++;                                 //
-                F(h,(uint64_t*)buffer,t,0);                     // Apply compression
+                t.left+=bb;                                       // Update data offset
+                if(t.left<bb)                                     // Manage carry
+                        t.right++;                                 //
+                B2B_F(h,(uint64_t*)buffer,t,0);                     // Apply compression
         }
 
         // Last block
         memcpy(buffer,data+ll/bb,ll%bb);        // Load last block in buffer
         memset(buffer+(ll%bb),0,bb-ll%bb);      // Pad with zeros
-        t[0]+=ll%bb;                            // Update data offset
-        if(t[0]<(ll%bb))                        // Manage carry
-                t[1]++;                         // 
-        F(h,(uint64_t*)buffer,t,1);             // Apply compression
+        t.left+=ll%bb;                            // Update data offset
+        if(t.left<(ll%bb))                        // Manage carry
+                t.right++;                         // 
+        B2B_F(h,(uint64_t*)buffer,t,1);             // Apply compression
 
         // Output the required nn bytes
         memcpy(digest,h,nn);
