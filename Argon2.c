@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <inttypes.h>
+#include <math.h>
 #include "blake2b.h"
+
 
 /*
 * Utility function that performs the Xor between two arrays of uint128_t of the same length
@@ -31,119 +33,50 @@ void P(uint128_t* S);
 */
 void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result);
 
+/*
+* Variable length hash function H'
+* tau is the 32-bit tag length in bytes (little-endian)
+*/
+uint8_t* Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau);
+
 
 // a Test
 int main(void)
 {
 
-	/*	
-	uint128_t S[8];
+	uint8_t* X;
 
-	for (int i = 0; i < 8; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
-		S[i].left = 4294967297 +i;
-		printf("%lu\n", S[i].left);
-		S[i].right = 4294967299 + 10*i;
-		printf("%lu\n", S[i].right);
+		*(X+i) = 0xFF;
 	}
 
-	printf("\n\n");
-	P((uint128_t*) &S);
+	uint32_t tau = 10;
 
-	for (int i = 0; i < 8; ++i)
+	uint8_t* digest = Hprime(X, 10, tau);
+
+	for (int i = 0; i < 10; ++i)
 	{
-		printf("%lu\n", S[i].left);
-		printf("%lu\n", S[i].right);
-	}	
-	*/
-
-	uint128_t X[64];
-	uint128_t Y[64];
-
-	for (int i = 0; i < 64; ++i)
-	{
-		X[i].left = 1;
-		Y[i].right = 0;
-		X[i].right = 0;
-		Y[i].left = 0;
+		printf("%02X\n", *(digest+i) );
 	}
 
-	
-	uint128_t T[64];
-
-	for (int i = 0; i < 64; ++i)
-	{
-		
-		T[i].left = 0;
-		T[i].right = 0;
-
-	}
-
-	printf("FINE\n");
-
-	CompressionFunctionG(X,Y,T);
-
-	
-	for (int i = 0; i < 64; ++i)
-	{
-		
-		uint64_t d = (*(T+i)).left;
-		uint64_t t = (*(T+i)).right;
-
-		printf("%016llX | %016llX\n", t, d);
-	}
-	
  	return 0;
 }
 
-// Utility function, XOR of two uint128_t*
-
-void XOR(uint128_t* X, uint128_t* Y, uint128_t* xored, int n)
-{
-
-        for (int i = 0; i < n; i++)
-        {
-                (*(xored+i)).left = ((*(X+i)).left) ^ ((*(Y+i)).left);
-                (*(xored+i)).right = ((*(X+i)).right) ^ ((*(Y+i)).right);
-        }
-
-}
-
-// Rotational right shift of a 64-bit array [controlla che non sia già stato definito, per esempio
-// importando blake2b]
+// Rotational right shift of a 64-bit array
 #ifndef ROT_SHIFT
 #define ROT_SHIFT(array,offset) (((array) >> (offset)) ^ ((array) << (64 - (offset))))
 #endif
 
-// questa va cambiata un po'. Mi pare di capire che questa sia quella costruita 
-// sulla funzione di round di blake2b, comunque visto che ha un paio di differenze è inutile stare lì a 
-// usare quella che si usa in b2b vera e propria. è possibile, ma sarebbe orrendo e poco leggibile il codice.
-// Detto ciò, se vogliamo tenere a mano spazio [20 righe scarse di codice] si può fare. Comunque qua sotto 
-// il problema sono gli shift, che devono essere rotational [qua conviene importare quello definito in blake2b,
-// si chiama ROT_SHIFT(array,offset) := (array >> offset) ^ (array << (64-offset)) <- visto che stiamo lavorando
-// a 64 bit ] mentre tu li fai semplici. 
-// In più i vari al,bl,.. devono essere a 64 bit, se no vanno in overflow quando provi a moltiplicarli sotto
-// e visto che siamo in little endian basta fare un cast
+
 void CoreG(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d)
 {
-	// uint32_t al = (*a>>32) & 0xffffffff;
-	// uint32_t bl = (*b>>32) & 0xffffffff;
-	// uint32_t cl = (*c>>32) & 0xffffffff;
-	// uint32_t dl = (*d>>32) & 0xffffffff;
-	// Sia
+	
 	uint64_t al = (uint32_t)(*a);
 	uint64_t bl = (uint32_t)(*b);
 	uint64_t cl = (uint32_t)(*c);
 	uint64_t dl = (uint32_t)(*d);
 
-	// *a = *a + *b + 2*al*bl;
-	// *d = (*d ^ *a) >> 32;
-	// *c = *c + *d + 2*cl*dl;
-	// *b = (*b ^ *c) >> 24;
-	// *a = *a + *b + 2*al*bl;
-	// *d = (*d ^ *a) >> 16;
-	// *c = *c + *d + 2*cl*dl;
-	// *b = (*b ^ *c) >> 63;
 	*a = *a + *b + 2*al*bl;
 	*d = ROT_SHIFT(*d ^ *a, 32);
 	*c = *c + *d + 2*cl*dl;
@@ -156,15 +89,6 @@ void CoreG(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d)
 
 void MyPermutation(uint64_t* S)
 {
-	// Li stai castando nello stesso tipo di dato che già sono
-	// CoreG((uint64_t*)S, (uint64_t*)(S+4), (uint64_t*)(S+8), (uint64_t*)(S+12));
-	// CoreG((uint64_t*)(S+1), (uint64_t*)(S+5),(uint64_t*)(S+9),(uint64_t*)(S+13));
-	// CoreG((uint64_t*)(S+2), (uint64_t*)(S+6), (uint64_t*)(S+10), (uint64_t*)(S+14));
-	// CoreG((uint64_t*)(S+3), (uint64_t*)(S+7), (uint64_t*)(S+11), (uint64_t*)(S+15));
-	// CoreG((uint64_t*)S, (uint64_t*)(S+5), (uint64_t*)(S+10), (uint64_t*)(S+15));
-	// CoreG((uint64_t*)(S+1), (uint64_t*)(S+6), (uint64_t*)(S+11), (uint64_t*)(S+12));
-	// CoreG((uint64_t*)(S+2), (uint64_t*)(S+7), (uint64_t*)(S+8), (uint64_t*)(S+13));
-	// CoreG((uint64_t*)(S+3), (uint64_t*)(S+4), (uint64_t*)(S+9), (uint64_t*)(S+14));
 	CoreG( S    , S + 4, S +  8, S + 12);
 	CoreG( S + 1, S + 5, S +  9, S + 13);
 	CoreG( S + 2, S + 6, S + 10, S + 14);
@@ -238,8 +162,22 @@ void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result)
                         Z[i][j] = Q [j][i];
                 }
 
-                P(Z[i]);
-        }       
+                P(Z[i]); 
+                // si deve fare di nuovo la porco dio di trasposta   
+
+        }    
+
+        for (int i = 0; i < 8; i++)
+        {
+                for (int j = 0; j < 8; j++)
+                {
+                        Q[i][j] = Z[j][i];
+                }
+
+        }    
+
+        Z = Q,
+
 
         //reguard Z as an array to perform XOR with R
         uint128_t myZ[64];
@@ -256,4 +194,57 @@ void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result)
         //XOR with R
         XOR(myZ, R, result,64);
 
+}
+
+
+uint8_t* Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau)
+{
+
+	// tau || X
+	uint8_t* tauCatX;
+	tauCatX = (uint8_t*) malloc( sizeof(uint8_t)*(sizeX+4));
+	memcpy(tauCatX, &tau, 4);
+	memcpy(tauCatX, X, sizeX);
+
+	//define the output digest
+	uint8_t* digest;
+	digest = tauCatX;
+
+	//digest depends on the value of tau
+	if(tau <= 64)
+	{
+		blake2b(digest,tau,tauCatX,sizeX+4, digest, 0);
+
+		//free memory
+		free(tauCatX);
+	}
+	
+
+	else
+	{
+		uint32_t r = tau/32 + (tau%32 != 0);
+
+		uint8_t* V;	
+
+		//apply blake2b	
+		blake2b(V,64,tauCatX, sizeX+4, digest,0);
+
+		//free memory
+		free(tauCatX);
+
+		//and add the first 32 bytes to the digest
+		memcpy(digest, V, 32);
+
+		for (int i = 1; i <= r; ++i)
+		{
+			blake2b(V,64,V,64, digest,0);
+			memcpy(digest+i, V, 32);
+		}
+
+		blake2b(V, tau-32*r, V,64, digest,0);
+		memcpy(digest+r+1,V, tau-32*r);
+	}
+		
+	return digest;
+	
 }
