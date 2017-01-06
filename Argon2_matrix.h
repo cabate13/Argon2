@@ -19,6 +19,7 @@ typedef struct{
         uint32_t m;
         uint32_t p;
         uint32_t q;
+        uint32_t segment_length;
 
 }Argon2_matrix;
 
@@ -29,14 +30,20 @@ typedef struct{
         uint64_t r;
         // lane number
         uint64_t l;
+        // column number
+        uint32_t c;
         // total memory blocks
         uint64_t m;
         // slice number
         uint64_t s;
         // total passes
         uint64_t t;
+        // type number
+        uint64_t x;
         // counter [reset for every segment]
         uint64_t i;
+        // place to save the 128 pairs in argon2i
+        uint64_t pairs[128];
 
 }Argon2_indexing_arguments;
 
