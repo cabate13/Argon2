@@ -62,7 +62,7 @@ uint32_t* Argon2d_generate_values(Argon2_matrix* B, uint32_t i, uint32_t j){
 }
 
 // Generates 128 pairs (J1,J2) t.b.u. in the data independent indexing function
-void Argon2i_generate_values( Argon2i_indexing_arguments* arg, uint32_t* pairs){
+void Argon2i_generate_values(Argon2_indexing_arguments* arg, uint32_t* pairs){
 
         uint128_t zeros[64];
         uint128_t input[64];
@@ -96,7 +96,13 @@ void Argon2i_generate_values( Argon2i_indexing_arguments* arg, uint32_t* pairs){
         }
 }
 
-void Argon2_indexing_mapping(Argon2_matrix){
+void Argon2_indexing_mapping(Argon2_indexing_arguments* arg; Argon2_matrix* B, uint32_t* J){
+
+        uint32_t l;
+        if(arg->r == 0 && arg->s == 0)
+                l = arg->l;
+        else
+                l = J[1] % B->p;
 
 
 

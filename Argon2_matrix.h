@@ -25,14 +25,20 @@ typedef struct{
 // arguments for the data-independent indexing function
 typedef struct{
 
+        // pass number
         uint64_t r;
+        // lane number
         uint64_t l;
+        // total memory blocks
         uint64_t m;
+        // slice number
         uint64_t s;
+        // total passes
         uint64_t t;
+        // counter [reset for every segment]
         uint64_t i;
 
-}Argon2i_indexing_arguments;
+}Argon2_indexing_arguments;
 
 // Initializes the matrix and sets its parameters
 int Argon2_matrix_init(uint32_t m, uint32_t p, Argon2_matrix* B);
