@@ -37,81 +37,25 @@ void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result);
 * Variable length hash function H'
 * tau is the 32-bit tag length in bytes (little-endian)
 */
-uint8_t* Hprime(uint8_t*X, uint32_t tau);
+uint8_t* Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau);
 
 
 // a Test
 int main(void)
 {
 
-	/*	
-	uint128_t S[8];
-	for (int i = 0; i < 8; ++i)
-	{
-		S[i].left = 4294967297 +i;
-		printf("%lu\n", S[i].left);
-		S[i].right = 4294967299 + 10*i;
-		printf("%lu\n", S[i].right);
-	}
-	printf("\n\n");
-	P((uint128_t*) &S);
-	for (int i = 0; i < 8; ++i)
-	{
-		printf("%lu\n", S[i].left);
-		printf("%lu\n", S[i].right);
-	}	
-	*/
+	uint8_t* X;
 
-	/*
-	uint128_t X[64];
-	uint128_t Y[64];
-
-	for (int i = 0; i < 64; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
-		X[i].left = 1;
-		Y[i].right = 0;
-		X[i].right = 0;
-		Y[i].left = 0;
+		*(X+i) = 0xFF;
 	}
 
-	
-	uint128_t T[64];
+	uint32_t tau = 10;
 
-	for (int i = 0; i < 64; ++i)
-	{
-		
-		T[i].left = 0;
-		T[i].right = 0;
+	uint8_t* digest = Hprime(X, 10, tau);
 
-	}
-
-	printf("FINE\n");
-
-	CompressionFunctionG(X,Y,T);
-
-	
-	for (int i = 0; i < 64; ++i)
-	{
-		
-		uint64_t d = (*(T+i)).left;
-		uint64_t t = (*(T+i)).right;
-
-		printf("%016llX | %016llX\n", t, d);
-	}
-	*/
-
-	uint8_t*X;
-
-	for (int i = 0; i < 64; ++i)
-	{
-		*(X+i) = 255;
-	}
-
-	uint32_t tau = 64;
-
-	uint8_t* digest = Hprime(X, tau);
-
-	for (int i = 0; i < 64; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
 		printf("%02X\n", *(digest+i) );
 	}
@@ -239,21 +183,26 @@ void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result)
 }
 
 
-uint8_t* Hprime(uint8_t*X, uint32_t tau)
+uint8_t* Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau)
 {
 
 	// tau || X
 	uint8_t* tauCatX;
+	tauCatX = (uint8_t*) malloc( sizeof(uint8_t)*(sizeX+4));
 	memcpy(tauCatX, &tau, 4);
-	memcpy(tauCatX, X, tau);
+	memcpy(tauCatX, X, sizeX);
 
 	//define the output digest
 	uint8_t* digest;
+	digest = tauCatX;
 
 	//digest depends on the value of tau
-	if(tau <=64)
+	if(tau <= 64)
 	{
-		blake2b(digest,tau,tauCatX,tau+4, digest, 0);
+		blake2b(digest,tau,tauCatX,sizeX+4, digest, 0);
+
+		//free memory
+		free(tauCatX);
 	}
 	
 
@@ -264,7 +213,10 @@ uint8_t* Hprime(uint8_t*X, uint32_t tau)
 		uint8_t* V;	
 
 		//apply blake2b	
-		blake2b(V,64,tauCatX, tau+4, digest,0);
+		blake2b(V,64,tauCatX, sizeX+4, digest,0);
+
+		//free memory
+		free(tauCatX);
 
 		//and add the first 32 bytes to the digest
 		memcpy(digest, V, 32);
