@@ -10,6 +10,7 @@ int Argon2_matrix_init(uint32_t m, uint32_t p, Argon2_matrix* B){
         B->p = p;
         B->m = (m/(4*p))*4*p;
         B->q = m/p;
+        B->segment_length = q/4;
 
         B->matrix = (uint8_t*)malloc(m*1024);
 
@@ -59,10 +60,12 @@ uint32_t* Argon2d_generate_values(Argon2_matrix* B, uint32_t i, uint32_t j){
                 printf("Warning: invalid indeces, reading random bytes from RAM");
         memcpy(J,buffer->content,8);
 
+        return J;
+
 }
 
 // Generates 128 pairs (J1,J2) t.b.u. in the data independent indexing function
-void Argon2i_generate_values( Argon2i_indexing_arguments* arg, uint32_t* pairs){
+void Argon2i_generate_values(Argon2_indexing_arguments* arg){
 
         uint128_t zeros[64];
         uint128_t input[64];
@@ -91,18 +94,62 @@ void Argon2i_generate_values( Argon2i_indexing_arguments* arg, uint32_t* pairs){
         CompressionFunctionG(zeros, result, result);
 
         for(int i = 0;i<64;i++){
-                pairs[2*i] = result[i].left;
-                pairs[2*i+1] = result[i].right;
+                arg->pairs[2*i] = result[i].left;
+                arg->pairs[2*i+1] = result[i].right;
         }
+
+        arg->i++;
 }
 
-void Argon2_indexing_mapping(Argon2_matrix){
+uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg; Argon2_matrix* B, uint32_t* J){
 
+        uint32_t l;
+        uint32_t referenceable_blocks;
+        uint32_t first_referenceable_block;
+        uint64_t index;
 
+        // Compute total referenceable blocks
+        if(arg->r == 0 && arg->s == 0)
+                l = arg->l;
+        else
+                l = J[1] % B->p;
+
+        if(l == arg->l){
+                // Computed blocks in that lane except c-1: |0 .. c-2|
+                referenceable_blocks = arg->c-1;
+                first_referenceable_block = 0;
+        }
+        else{
+                // Last three finished segments [i.e. the other three] | start of next segment ... |
+                // This is three segments long and starts in the next segment. If it is the case exclude
+                // last block.
+                referenceable_blocks = 3*B->segment_length - ((arg->c % B->segment_length) == 0);
+                first_referenceable_block = (arg->c/B->segment_length + 1) * B->segment_length;
+        }
+
+        // Compute referenceable block
+
+        index = J[0];
+        index = index*index >> 32;
+        index = referenceable_blocks*x >> 32;
+        index = referenceable_blocks - 1 - index;
+        index+=first_referenceable_block;
+        index = index % B->q;
+        index ^= ((uint64_t)l << 32);
+
+        return index;
 
 }
 
-void Argon2d_indexing(Argon2_matrix* B){
+uint64_t Argon2_indexing(Argon2_indexing_arguments* arg, Argon2_matrix* B){
+
+        if(arg->x){
+                if(arg->c % 128 == 1)
+                        Argon2i_generate_values(arg);
+                return Argon2_indexing_mapping( arg, B, (uint32_t*)(&(arg->pairs[i%128-1])));
+        }
+        else
+                return Argon2_indexing_mapping( arg, B, Argon2d_generate_values(B, arg->l, arg->c));
 
 }
 
