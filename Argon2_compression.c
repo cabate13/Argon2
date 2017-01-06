@@ -20,11 +20,6 @@ void MyPermutation(uint64_t* S);
 */
 void P(uint128_t* S);
 
-/*
-*  Compression Function of Argon2
-*/
-void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result);
-
 // Rotational right shift of a 64-bit array [controlla che non sia già stato definito, per esempio
 // importando blake2b]
 #ifndef ROT_SHIFT
@@ -125,8 +120,19 @@ void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result)
                         Z[i][j] = Q [j][i];
                 }
 
-                P(Z[i]);
-        }       
+                P(Z[i]); 
+                // si deve fare di nuovo la porco dio di trasposta   
+
+        }    
+
+        for (int i = 0; i < 8; i++)
+        {
+                for (int j = 0; j < 8; j++)
+                {
+                        Q[i][j] = Z[j][i];
+                }
+
+        }
 
         //reguard Z as an array to perform XOR with R
         uint128_t myZ[64];
@@ -135,7 +141,7 @@ void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result)
         {
                 for (int j = 0; j < 8; j++)
                 {
-                        myZ[j+8*i] = Z[i][j];
+                        myZ[j+8*i] = Q[i][j];
                 }
                 
         }
@@ -143,4 +149,54 @@ void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result)
         //XOR with R
         XOR(myZ, R, result,64);
 
+}
+
+
+void Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
+{
+
+        // tau || X
+        uint8_t* tauCatX;
+        tauCatX = (uint8_t*) malloc( sizeof(uint8_t)*(sizeX+4));
+        memcpy(tauCatX, &tau, 4);
+        memcpy(tauCatX, X, sizeX);
+
+        //digest depends on the value of tau
+        if(tau <= 64)
+        {
+                blake2b(digest,tau,tauCatX,sizeX+4, digest, 0);
+
+                //free memory
+                free(tauCatX);
+        }
+        
+
+        else
+        {
+                uint32_t r = tau/32 + (tau%32 != 0);
+
+                uint8_t* V;     
+
+                //apply blake2b 
+                blake2b(V,64,tauCatX, sizeX+4, digest,0);
+
+                //free memory
+                free(tauCatX);
+
+                //and add the first 32 bytes to the digest
+                memcpy(digest, V, 32);
+
+                for (int i = 1; i <= r; ++i)
+                {
+                        blake2b(V,64,V,64, digest,0);
+                        memcpy(digest+i, V, 32);
+                }
+
+                blake2b(V, tau-32*r, V,64, digest,0);
+                memcpy(digest+r+1,V, tau-32*r);
+        }
+             
+        //free memory
+        free(tauCatX);   
+        
 }
