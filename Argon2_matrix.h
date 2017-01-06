@@ -44,6 +44,8 @@ typedef struct{
         uint64_t i;
         // place to save the 128 pairs in argon2i
         uint64_t pairs[128];
+        // used pairs counter
+        uint64_t counter;
 
 }Argon2_indexing_arguments;
 
@@ -58,5 +60,9 @@ int Argon2_matrix_get_block(uint32_t i, uint32_t j, Argon2_block* dst, Argon2_ma
 
 // GC
 void Argon2_matrix_free(Argon2_matrix* B);
+
+// Indexing function
+
+uint64_t Argon2_indexing(Argon2_indexing_arguments* arg, Argon2_matrix* B);
 
 #endif
