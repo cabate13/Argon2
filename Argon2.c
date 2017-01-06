@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <inttypes.h>
+#include <math.h>
 #include "blake2b.h"
+
 
 /*
 * Utility function that performs the Xor between two arrays of uint128_t of the same length
@@ -31,6 +33,12 @@ void P(uint128_t* S);
 */
 void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result);
 
+/*
+* Variable length hash function H'
+* tau is the 32-bit tag length in bytes (little-endian)
+*/
+uint8_t* Hprime(uint8_t*X, uint32_t tau);
+
 
 // a Test
 int main(void)
@@ -38,7 +46,6 @@ int main(void)
 
 	/*	
 	uint128_t S[8];
-
 	for (int i = 0; i < 8; ++i)
 	{
 		S[i].left = 4294967297 +i;
@@ -46,10 +53,8 @@ int main(void)
 		S[i].right = 4294967299 + 10*i;
 		printf("%lu\n", S[i].right);
 	}
-
 	printf("\n\n");
 	P((uint128_t*) &S);
-
 	for (int i = 0; i < 8; ++i)
 	{
 		printf("%lu\n", S[i].left);
@@ -57,6 +62,7 @@ int main(void)
 	}	
 	*/
 
+	/*
 	uint128_t X[64];
 	uint128_t Y[64];
 
@@ -92,58 +98,41 @@ int main(void)
 
 		printf("%016llX | %016llX\n", t, d);
 	}
-	
+	*/
+
+	uint8_t*X;
+
+	for (int i = 0; i < 64; ++i)
+	{
+		*(X+i) = 255;
+	}
+
+	uint32_t tau = 64;
+
+	uint8_t* digest = Hprime(X, tau);
+
+	for (int i = 0; i < 64; ++i)
+	{
+		printf("%02X\n", *(digest+i) );
+	}
+
  	return 0;
 }
 
-// Utility function, XOR of two uint128_t*
-
-void XOR(uint128_t* X, uint128_t* Y, uint128_t* xored, int n)
-{
-
-        for (int i = 0; i < n; i++)
-        {
-                (*(xored+i)).left = ((*(X+i)).left) ^ ((*(Y+i)).left);
-                (*(xored+i)).right = ((*(X+i)).right) ^ ((*(Y+i)).right);
-        }
-
-}
-
-// Rotational right shift of a 64-bit array [controlla che non sia già stato definito, per esempio
-// importando blake2b]
+// Rotational right shift of a 64-bit array
 #ifndef ROT_SHIFT
 #define ROT_SHIFT(array,offset) (((array) >> (offset)) ^ ((array) << (64 - (offset))))
 #endif
 
-// questa va cambiata un po'. Mi pare di capire che questa sia quella costruita 
-// sulla funzione di round di blake2b, comunque visto che ha un paio di differenze è inutile stare lì a 
-// usare quella che si usa in b2b vera e propria. è possibile, ma sarebbe orrendo e poco leggibile il codice.
-// Detto ciò, se vogliamo tenere a mano spazio [20 righe scarse di codice] si può fare. Comunque qua sotto 
-// il problema sono gli shift, che devono essere rotational [qua conviene importare quello definito in blake2b,
-// si chiama ROT_SHIFT(array,offset) := (array >> offset) ^ (array << (64-offset)) <- visto che stiamo lavorando
-// a 64 bit ] mentre tu li fai semplici. 
-// In più i vari al,bl,.. devono essere a 64 bit, se no vanno in overflow quando provi a moltiplicarli sotto
-// e visto che siamo in little endian basta fare un cast
+
 void CoreG(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d)
 {
-	// uint32_t al = (*a>>32) & 0xffffffff;
-	// uint32_t bl = (*b>>32) & 0xffffffff;
-	// uint32_t cl = (*c>>32) & 0xffffffff;
-	// uint32_t dl = (*d>>32) & 0xffffffff;
-	// Sia
+	
 	uint64_t al = (uint32_t)(*a);
 	uint64_t bl = (uint32_t)(*b);
 	uint64_t cl = (uint32_t)(*c);
 	uint64_t dl = (uint32_t)(*d);
 
-	// *a = *a + *b + 2*al*bl;
-	// *d = (*d ^ *a) >> 32;
-	// *c = *c + *d + 2*cl*dl;
-	// *b = (*b ^ *c) >> 24;
-	// *a = *a + *b + 2*al*bl;
-	// *d = (*d ^ *a) >> 16;
-	// *c = *c + *d + 2*cl*dl;
-	// *b = (*b ^ *c) >> 63;
 	*a = *a + *b + 2*al*bl;
 	*d = ROT_SHIFT(*d ^ *a, 32);
 	*c = *c + *d + 2*cl*dl;
@@ -156,15 +145,6 @@ void CoreG(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d)
 
 void MyPermutation(uint64_t* S)
 {
-	// Li stai castando nello stesso tipo di dato che già sono
-	// CoreG((uint64_t*)S, (uint64_t*)(S+4), (uint64_t*)(S+8), (uint64_t*)(S+12));
-	// CoreG((uint64_t*)(S+1), (uint64_t*)(S+5),(uint64_t*)(S+9),(uint64_t*)(S+13));
-	// CoreG((uint64_t*)(S+2), (uint64_t*)(S+6), (uint64_t*)(S+10), (uint64_t*)(S+14));
-	// CoreG((uint64_t*)(S+3), (uint64_t*)(S+7), (uint64_t*)(S+11), (uint64_t*)(S+15));
-	// CoreG((uint64_t*)S, (uint64_t*)(S+5), (uint64_t*)(S+10), (uint64_t*)(S+15));
-	// CoreG((uint64_t*)(S+1), (uint64_t*)(S+6), (uint64_t*)(S+11), (uint64_t*)(S+12));
-	// CoreG((uint64_t*)(S+2), (uint64_t*)(S+7), (uint64_t*)(S+8), (uint64_t*)(S+13));
-	// CoreG((uint64_t*)(S+3), (uint64_t*)(S+4), (uint64_t*)(S+9), (uint64_t*)(S+14));
 	CoreG( S    , S + 4, S +  8, S + 12);
 	CoreG( S + 1, S + 5, S +  9, S + 13);
 	CoreG( S + 2, S + 6, S + 10, S + 14);
@@ -256,4 +236,49 @@ void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result)
         //XOR with R
         XOR(myZ, R, result,64);
 
+}
+
+
+uint8_t* Hprime(uint8_t*X, uint32_t tau)
+{
+
+	// tau || X
+	uint8_t* tauCatX;
+	memcpy(tauCatX, &tau, 4);
+	memcpy(tauCatX, X, tau);
+
+	//define the output digest
+	uint8_t* digest;
+
+	//digest depends on the value of tau
+	if(tau <=64)
+	{
+		blake2b(digest,tau,tauCatX,tau+4, digest, 0);
+	}
+	
+
+	else
+	{
+		uint32_t r = tau/32 + (tau%32 != 0);
+
+		uint8_t* V;	
+
+		//apply blake2b	
+		blake2b(V,64,tauCatX, tau+4, digest,0);
+
+		//and add the first 32 bytes to the digest
+		memcpy(digest, V, 32);
+
+		for (int i = 1; i <= r; ++i)
+		{
+			blake2b(V,64,V,64, digest,0);
+			memcpy(digest+i, V, 32);
+		}
+
+		blake2b(V, tau-32*r, V,64, digest,0);
+		memcpy(digest+r+1,V, tau-32*r);
+	}
+		
+	return digest;
+	
 }
