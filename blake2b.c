@@ -56,7 +56,7 @@ static const uint64_t IV[8] = {
 #define ERROR(msg) {puts((char*)msg); exit(1);}
 #define ROT_SHIFT(array,offset) (((array) >> (offset)) ^ ((array) << (64 - (offset))))
 
-// These should not be necessary, since this is a library now
+// These should not be necessary, since this is a library
 void B2B_G(uint64_t* work_vector, int a, int b, int c, int d, uint64_t x, uint64_t y);
 void B2B_F(uint64_t* h, uint64_t* m, uint128_t t, int f );
 
@@ -98,8 +98,8 @@ void B2B_F(uint64_t* h, uint64_t* m, uint128_t t, int f ){
         memcpy(v,h,ww);
         memcpy(v+8,IV,ww);
 
-        v[12] ^= t[0];
-        v[13] ^= t[1];
+        v[12] ^= t.left;
+        v[13] ^= t.right;
 
         if(f)
                 v[14] ^= 0xFFFFFFFFFFFFFFFF;
@@ -151,7 +151,7 @@ void blake2b( void* digest, size_t nn, void* data, size_t ll, void* key, size_t 
                 if(kk == 0){
                         puts("Warning: Unkeyed empty message.\n");
                         memset(buffer,0,bb);
-                        t[0]+=bb;
+                        t.left+=bb;
                         B2B_F(h,(uint64_t*)buffer,t,1);
                         memcpy(digest,h,nn);
                         return;
