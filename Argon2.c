@@ -162,8 +162,22 @@ void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result)
                         Z[i][j] = Q [j][i];
                 }
 
-                P(Z[i]);
-        }       
+                P(Z[i]); 
+                // si deve fare di nuovo la porco dio di trasposta   
+
+        }    
+
+        for (int i = 0; i < 8; i++)
+        {
+                for (int j = 0; j < 8; j++)
+                {
+                        Q[i][j] = Z[j][i];
+                }
+
+        }    
+
+        Z = Q,
+
 
         //reguard Z as an array to perform XOR with R
         uint128_t myZ[64];
