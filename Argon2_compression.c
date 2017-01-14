@@ -79,7 +79,7 @@ void P(uint128_t* T)
 }
 
 
-void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result)
+void CompressionFunctionG(uint128_t* X, uint128_t* Y, uint128_t* result)
 {
 
         //the first XOR
@@ -127,7 +127,7 @@ void Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
         uint8_t* tauCatX;
         tauCatX = (uint8_t*) malloc( sizeof(uint8_t)*(sizeX+4));
         memcpy(tauCatX, &tau, 4);
-        memcpy(tauCatX, X, sizeX);
+        memcpy(tauCatX+4, X, sizeX);
 
         //digest depends on the value of tau
         if(tau <= 64)
