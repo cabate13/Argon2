@@ -1,67 +1,38 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
-#include "Argon2_compression.h"
-#include "blake2b.h"
+#include <inttypes.h>
+#include <string.h>
+#include "Argon2_matrix.h"
+//#include "Argon2_compression.h"
+//#include "blake2b.h"
+//#include "SomeUtilityFunctions.h"
+
+
+void XOR128(uint64_t* X, uint64_t* Y, uint64_t* res, int n)
+{
+    for(int i=0; i<n; i++)
+    {
+        res[i] = X[i] ^ Y[i];
+    }
+}
 
 int main(void)
 {
+        Argon2_block block;
 
-        /*      
-        uint128_t S[8];
-
-        for (int i = 0; i < 8; ++i)
+        for (int i = 0; i < 1024; ++i)
         {
-                S[i].left = 4294967297 +i;
-                printf("%lu\n", S[i].left);
-                S[i].right = 4294967299 + 10*i;
-                printf("%lu\n", S[i].right);
+            block.content[i] = 1;
         }
 
-        printf("\n\n");
-        P((uint128_t*) &S);
+        XOR128((uint64_t*)block.content, (uint64_t*)block.content, (uint64_t*)block.content, 128);
 
-        for (int i = 0; i < 8; ++i)
+        for (int i = 0; i < 1024; ++i)
         {
-                printf("%lu\n", S[i].left);
-                printf("%lu\n", S[i].right);
-        }       
-        */
-
-        uint128_t X[64];
-        uint128_t Y[64];
-
-        for (int i = 0; i < 64; ++i)
-        {
-                X[i].left = 1;
-                Y[i].right = 0;
-                X[i].right = 0;
-                Y[i].left = 0;
+            printf("%02X\n", block.content[i]);
         }
 
-        
-        uint128_t T[64];
-
-        for (int i = 0; i < 64; ++i)
-        {
-                
-                T[i].left = 0;
-                T[i].right = 0;
-
-        }
-
-        printf("FINE\n");
-
-        CompressionFunctionG(X,Y,T);
-
-        
-        for (int i = 0; i < 64; ++i)
-        {
-                
-                uint64_t d = (*(T+i)).left;
-                uint64_t t = (*(T+i)).right;
-
-                printf("%016llX | %016llX\n", t, d);
-        }
-        
         return 0;
 }
+

@@ -62,7 +62,11 @@ int Argon2_matrix_get_block(uint32_t i, uint32_t j, Argon2_block* dst, Argon2_ma
 void Argon2_matrix_free(Argon2_matrix* B);
 
 // Indexing function
-
+/* Per avere la coppia di indici dell'indexing
+Poni ip l'uint64 che ti butta Argon indexing
+i = ip » 32
+j = ip ^ 0x00000000FFFFFFFF
+*/
 uint64_t Argon2_indexing(Argon2_indexing_arguments* arg, Argon2_matrix* B);
 
 #endif

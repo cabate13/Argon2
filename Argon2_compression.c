@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include "blake2b.h"
 #include "Argon2_compression.h"
+#include "SomeUtilityFunctions.h"
 
 /*
 * Function G in Blake2b (see pages 18 - 19) it is the core function for the permutation
@@ -59,95 +60,62 @@ void MyPermutation(uint64_t* S)
 
 void P(uint128_t* T)
 {
-        uint128_t S[8]; 
+        uint64_t MyT[16];
 
         for (int i = 0; i < 8; ++i)
         {
-                S[i] = *(T+i);
-        }
-
-        uint64_t MyS[16];
-
-        for (int i = 0; i < 8; ++i)
-        {
-                MyS[2*i] = S[i].left;
-                MyS[2*i+1] = S[i].right;
+                MyT[2*i] = T[i].left;
+                MyT[2*i+1] = T[i].right;
         }
         
-        MyPermutation(MyS);
+        MyPermutation(MyT);
 
         for (int i = 0; i < 8; ++i)
         {
-                S[i].left = MyS[2*i];
-                S[i].right = MyS[2*i+1];
+                T[i].left = MyT[2*i];
+                T[i].right = MyT[2*i+1];
         }
-
-        *T = *S;
 
 }
 
 
-void CompressionFunctionG(uint128_t X[64], uint128_t Y[64], uint128_t* result)
+void CompressionFunctionG(uint128_t* X, uint128_t* Y, uint128_t* result)
 {
 
         //the first XOR
         uint128_t R[64];
-
         XOR(X,Y,R,64);
 
-        //now we build the square matrix Q
-        uint128_t Q[8][8];
+        //build the square matrix Q
+        uint128_t** Q;
+        Q = matrixMalloc(Q,8,8);
+        arrayToMatrix(R,Q,8,8);
 
         for (int i = 0; i < 8; i++)
         {
-                for (int j= 0; j < 8; j++)
-                {
-                        Q[i][j] = R[j+8*i];
-                }
-
-                //and apply P to each row of Q
                 P(Q[i]);
         }
 
+        //build the square matrix Z
+        uint128_t** Z = transpose(Q,8,8);
 
-        //now compute the tansopose of Q and apply P to its rows
-        uint128_t Z[8][8];
-
-        for (int i = 0; i < 8; i++)
-        {
-                for (int j = 0; j < 8; j++)
-                {
-                        Z[i][j] = Q [j][i];
-                }
-
-                P(Z[i]); 
-                // si deve fare di nuovo la porco dio di trasposta   
-
-        }    
+        //free memory used for Q
+        matrixFree(Q,8);
 
         for (int i = 0; i < 8; i++)
         {
-                for (int j = 0; j < 8; j++)
-                {
-                        Q[i][j] = Z[j][i];
-                }
-
+               P(Z[i]);
         }
 
         //reguard Z as an array to perform XOR with R
-        uint128_t myZ[64];
+        uint128_t Zarray[64];
+        matrixToArray(Z,Zarray,8,8);
 
-        for (int i = 0; i < 8; i++)
-        {
-                for (int j = 0; j < 8; j++)
-                {
-                        myZ[j+8*i] = Q[i][j];
-                }
-                
-        }
+        //free memory used for Z
+        matrixFree(Z,8);
 
         //XOR with R
-        XOR(myZ, R, result,64);
+        XOR(Zarray, R, result,64);
 
 }
 
@@ -159,7 +127,7 @@ void Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
         uint8_t* tauCatX;
         tauCatX = (uint8_t*) malloc( sizeof(uint8_t)*(sizeX+4));
         memcpy(tauCatX, &tau, 4);
-        memcpy(tauCatX, X, sizeX);
+        memcpy(tauCatX+4, X, sizeX);
 
         //digest depends on the value of tau
         if(tau <= 64)
