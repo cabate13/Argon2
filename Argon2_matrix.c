@@ -51,7 +51,7 @@ void Argon2_matrix_free(Argon2_matrix* B){
 
 }
 
-// Generates J1, J2 as specified in Argon2d
+// Generates J1, J2 as specified in Argon2d: data dependent
 uint64_t Argon2d_generate_values(Argon2_matrix* B, uint32_t i, uint32_t j){
 
         Argon2_block buffer;
@@ -64,41 +64,28 @@ uint64_t Argon2d_generate_values(Argon2_matrix* B, uint32_t i, uint32_t j){
 
 }
 
-// Generates 128 pairs (J1,J2) t.b.u. in the data independent indexing function
+// Generates 128 pairs (J1,J2) t.b.u. in the data independent indexing function:
+// data independent
 void Argon2i_generate_values(Argon2_indexing_arguments* arg){
 
-        printf("Generating indeces\n");
+        uint64_t zeros[128];
+        uint64_t input[128];
 
-        uint128_t zeros[64];
-        uint128_t input[64];
-        uint128_t result[64];
+        memset(zeros,0,128*sizeof(uint64_t));
 
-        for(int i = 0;i<64;i++){
-                zeros[i].left = 0;
-                zeros[i].right = 0;
-        }
+        input[0] = arg->r;
+        input[1] = arg->l;
+        input[2] = arg->s;
+        input[3] = arg->m;
+        input[4] = arg->t;
+        input[5] = arg->x;
+        input[6] = arg->i;
+        input[7] = 0;
 
-        input[0].left = arg->r;
-        input[0].right = arg->l;
-        input[1].left = arg->s;
-        input[1].right = arg->m;
-        input[2].left = arg->t;
-        input[2].right = arg->x;
-        input[3].left = arg->i;
-        input[3].right = 0;
-        for(int i = 4;i<64;i++){
-                input[i].left = 0;
-                input[i].right = 0;
-        }
+        memset(input+8, 0, 120*sizeof(uint64_t));
 
-
-        CompressionFunctionG(zeros, input, result);
-        CompressionFunctionG(zeros, result, result);
-
-        for(int i = 0;i<64;i++){
-                arg->pairs[2*i] = result[i].left;
-                arg->pairs[2*i+1] = result[i].right;
-        }
+        CompressionFunctionG(zeros, input, arg->pairs);
+        CompressionFunctionG(zeros, arg->pairs, arg->pairs);
 
         arg->i++;
 }
@@ -113,7 +100,6 @@ uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* 
 
         pair[0] = (uint32_t)J;
         pair[1] = (uint32_t)(J >> 32);
-        printf("J: %08X | %08X\n", pair[0], pair[1]);
 
         // Compute total referenceable blocks
         if(arg->r == 0 && arg->s == 0)
@@ -135,23 +121,13 @@ uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* 
         }
 
         // Compute referenceable block
-
-        printf("Referenceable: %016llX\n", referenceable_blocks);
-
         index = pair[0];
-        printf("index = %016llX\n",index);
         index = (index*index) >> 32;
-        printf("index = %016llX\n",index);
         index = (referenceable_blocks*index) >> 32;
-        printf("index = %016llX\n",index);
         index = referenceable_blocks - 1 - index;
-        printf("index = %016llX\n",index);
         index+= first_referenceable_block;
-        printf("index = %016llX\n",index);
         index = index % B->q;
-        printf("index = %016llX\n",index);
         index ^= ((uint64_t)l << 32);
-        printf("index = %016llX\n",index);
 
         return index;
 

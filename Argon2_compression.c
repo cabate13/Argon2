@@ -3,30 +3,16 @@
 #include <inttypes.h>
 #include "blake2b.h"
 #include "Argon2_compression.h"
-#include "SomeUtilityFunctions.h"
 
-/*
-* Function G in Blake2b (see pages 18 - 19) it is the core function for the permutation
-*/
-void CoreG(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d);
-
-/*
-* Rund function of Blake2b (it should be a permutation but does not look like...)
-* it takes in input the address of the array cointaining v_0... v_15
-*/
-void MyPermutation(uint64_t* S);
-
-/*
-* starting from an array of 8 blocks of 16 bytes get the corresnponding matrix and then apply MyPermutation
-*/
-void P(uint128_t* S);
-
-// Rotational right shift of a 64-bit array [controlla che non sia già stato definito, per esempio
-// importando blake2b]
 #ifndef ROT_SHIFT
+// Rotational right shift of a 64-bit array
 #define ROT_SHIFT(array,offset) (((array) >> (offset)) ^ ((array) << (64 - (offset))))
-#endif
+#endif 
 
+/*
+* Slightly modified version of the function G in Blake2b (see pages 18 - 19) 
+* It is the core function for the permutation P
+*/
 void CoreG(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d)
 {
 
@@ -45,7 +31,11 @@ void CoreG(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d)
 	*b = ROT_SHIFT(*b ^ *c, 63);
 }
 
-void MyPermutation(uint64_t* S)
+/*
+* Slightly modified version of round function of Blake2b 
+* it takes in input the address of the array cointaining v_0... v_15
+*/
+void P(uint64_t* S)
 {
 
 	CoreG( S    , S + 4, S +  8, S + 12);
@@ -56,69 +46,60 @@ void MyPermutation(uint64_t* S)
 	CoreG( S + 1, S + 6, S + 11, S + 12);
 	CoreG( S + 2, S + 7, S +  8, S + 13);
 	CoreG( S + 3, S + 4, S +  9, S + 14);
+
 }
 
-void P(uint128_t* T)
+void XOR128(uint64_t* X, uint64_t* Y, uint64_t* res, int n)
 {
-        uint64_t MyT[16];
-
-        for (int i = 0; i < 8; ++i)
-        {
-                MyT[2*i] = T[i].left;
-                MyT[2*i+1] = T[i].right;
-        }
-        
-        MyPermutation(MyT);
-
-        for (int i = 0; i < 8; ++i)
-        {
-                T[i].left = MyT[2*i];
-                T[i].right = MyT[2*i+1];
-        }
-
+	for(int i=0; i<n; i++)
+	{
+		res[i] = X[i] ^ Y[i];
+	}
 }
 
-
-void CompressionFunctionG(uint128_t* X, uint128_t* Y, uint128_t* result)
+void CompressionFunctionG(uint64_t* X, uint64_t* Y, uint64_t* result)
 {
 
         //the first XOR
-        uint128_t R[64];
-        XOR(X,Y,R,64);
+        uint64_t R[128];
+        XOR128(X,Y,R,128);
 
-        //build the square matrix Q
-        uint128_t** Q;
-        Q = matrixMalloc(Q,8,8);
-        arrayToMatrix(R,Q,8,8);
+        uint64_t* Q = R;
+        
+        //the generic Row of Q to which we will apply P
+        uint64_t array[16];
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 8; ++i)
         {
-                P(Q[i]);
+        	memcpy(array, Q + 16*i, sizeof(uint64_t)*16);
+        	P(array);
+        	memcpy(Q+ 16*i, array, sizeof(uint64_t)*16);
         }
 
-        //build the square matrix Z
-        uint128_t** Z = transpose(Q,8,8);
+        // now build Z
+        uint64_t Z[128];
 
-        //free memory used for Q
-        matrixFree(Q,8);
-
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 8; ++i)
         {
-               P(Z[i]);
+        	for (int j = 0; j < 8; ++j)
+        	{
+        		array[2*j] = Q[16*j+2*i];
+        		array[2*j+1] = Q[16*j+1+2*i];
+        	}
+
+        	P(array);
+
+        	for (int j=0; j<8; ++j)
+        	{
+        		Z[16*j+2*i] = array[2*j];
+        		Z[16*j+1+2*i] = array[2*j+1];
+        	}
+
         }
 
-        //reguard Z as an array to perform XOR with R
-        uint128_t Zarray[64];
-        matrixToArray(Z,Zarray,8,8);
-
-        //free memory used for Z
-        matrixFree(Z,8);
-
-        //XOR with R
-        XOR(Zarray, R, result,64);
+       	XOR128(Z,R,result,128);
 
 }
-
 
 void Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
 {
@@ -131,40 +112,31 @@ void Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
 
         //digest depends on the value of tau
         if(tau <= 64)
-        {
-                blake2b(digest,tau,tauCatX,sizeX+4, digest, 0);
-
-                //free memory
-                free(tauCatX);
-        }
-        
+                blake2b(digest,tau,tauCatX,sizeX+4, NULL, 0);
 
         else
         {
-                uint32_t r = tau/32 + (tau%32 != 0);
+                uint32_t r = tau/32 + (tau%32 != 0) - 2;
+                uint8_t V[64];     
 
-                uint8_t* V;     
-
-                //apply blake2b 
-                blake2b(V,64,tauCatX, sizeX+4, digest,0);
-
-                //free memory
-                free(tauCatX);
-
-                //and add the first 32 bytes to the digest
+                //apply blake2b to tau||X to find V_1
+                blake2b(V,64,tauCatX, sizeX+4, NULL,0);
                 memcpy(digest, V, 32);
 
-                for (int i = 1; i <= r; ++i)
+                // Compute V_(i+1) = blake2b(V_i)
+                // Copy the first 32 bits of V_i+1 to the digest
+                for (int i = 1; i < r; ++i)
                 {
                         blake2b(V,64,V,64, digest,0);
                         memcpy(digest+i, V, 32);
                 }
 
                 blake2b(V, tau-32*r, V,64, digest,0);
-                memcpy(digest+r+1,V, tau-32*r);
+                memcpy(digest+r,V, tau-32*r);
         }
              
         //free memory
         free(tauCatX);   
         
 }
+

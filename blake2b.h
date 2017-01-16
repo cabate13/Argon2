@@ -20,12 +20,6 @@
 
 #define BLAKE2B
 
-// Unsigned integer with 128 bits precision
-typedef struct {
-        uint64_t left;
-        uint64_t right;
-} uint128_t;
-
 // Blake2b hash function function
 void blake2b( void* digest, size_t nn, void* data, size_t ll, void* key, size_t kk);
 

@@ -3,35 +3,39 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <string.h>
-#include "Argon2_matrix.h"
-//#include "Argon2_compression.h"
-//#include "blake2b.h"
-//#include "SomeUtilityFunctions.h"
-
-
-void XOR128(uint64_t* X, uint64_t* Y, uint64_t* res, int n)
-{
-    for(int i=0; i<n; i++)
-    {
-        res[i] = X[i] ^ Y[i];
-    }
-}
+#include "Argon2_compression.h"
+#include "blake2b.h"
 
 int main(void)
 {
-        Argon2_block block;
+        uint64_t X[128];
+        uint64_t Y[128];
+        uint64_t result[128];
 
-        for (int i = 0; i < 1024; ++i)
-        {
-            block.content[i] = 1;
+        memset(X,0x12,128*sizeof(uint64_t));
+        memset(Y,0x13,128*sizeof(uint64_t));
+
+        CompressionFunctionG(X, Y, result);
+
+        printf("A2CT:: Compression of 0x12 and 0x13:\n");
+        for(int i = 0; i<128;i++){
+
+            printf("%016llX ",result[i]);
+
         }
+        printf("\n");
 
-        XOR128((uint64_t*)block.content, (uint64_t*)block.content, (uint64_t*)block.content, 128);
+        uint64_t digest[4];
 
-        for (int i = 0; i < 1024; ++i)
-        {
-            printf("%02X\n", block.content[i]);
+        Hprime((uint8_t*)X, 1024, 4*64, (uint8_t*)digest);
+
+        printf("A2CT:: Hash H' of 0x12:\n");
+        for(int i = 0;i<4;i++){
+
+            printf("%016llX ",digest[i]);
+
         }
+        printf("\n");
 
         return 0;
 }
