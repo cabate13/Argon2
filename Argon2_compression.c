@@ -110,6 +110,11 @@ void Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
         memcpy(tauCatX, &tau, 4);
         memcpy(tauCatX+4, X, sizeX);
 
+        /*printf("tauCatX:\n");
+        for(int i = 0; i<sizeX;i++)
+            printf("%02X ",tauCatX[i]);
+        printf("\n");*/
+
         //digest depends on the value of tau
         if(tau <= 64)
                 blake2b(digest,tau,tauCatX,sizeX+4, NULL, 0);

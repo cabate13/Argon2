@@ -4,11 +4,12 @@
 
 int main(int argc, char const *argv[])
 {
-        unsigned char data[3] = {'a','b','c'};
+        unsigned char data[1200] = {'a','b','c'};
+        memset(data+3,0x13,1197);
         unsigned char digest[64];
 
         size_t nn = 64;
-        size_t ll = 3;
+        size_t ll = 1197;
 
         blake2b(digest,nn,data,ll,NULL,0);
 

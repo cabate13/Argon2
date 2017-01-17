@@ -52,9 +52,12 @@ static const uint64_t IV[8] = {
 };
 
 // Functions prototypes
-
+#if !defined ERROR
 #define ERROR(msg) {puts((char*)msg); exit(1);}
+#endif
+#if !defined ROT_SHIFT
 #define ROT_SHIFT(array,offset) (((array) >> (offset)) ^ ((array) << (64 - (offset))))
+#endif
 void B2B_G(uint64_t* work_vector, int a, int b, int c, int d, uint64_t x, uint64_t y);
 void B2B_F(uint64_t* h, uint64_t* m, uint64_t* t, int f );
 

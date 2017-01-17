@@ -1,18 +1,35 @@
 #include "Argon2_matrix.h"
 #include "Argon2_compression.h"
 
-// Initializes the matrix and sets its parameters
-int Argon2_matrix_init(uint32_t m, uint32_t p, Argon2_matrix* B){
+// Initializes the arguments for indexing
+void Argon2_indexing_arguments_init(Argon2_indexing_arguments* args, uint32_t m, uint32_t t, uint32_t x){
+        
+        args->m = m;
+        args->t = t;
+        args->x = x;
 
-        if(p == 0 || p > 0xFFFFFF || m < 8*p || B->matrix != NULL)
+        args->r = 0;
+        args->l = 0;
+        args->c = 0;
+        args->s = 0;
+        args->t = 0;
+        args->i = 0;
+        args->counter = 0;
+
+}
+
+// Initializes the matrix and sets its parameters
+int Argon2_matrix_init(uint32_t m_raw, uint32_t p, Argon2_matrix* B){
+
+        if(p == 0 || p > 0xFFFFFF || m_raw < 8*p)
                 return 1;
 
         B->p = p;
-        B->m = (m/(4*p))*4*p;
-        B->q = m/p;
+        B->m = (m_raw/(4*p))*4*p;
+        B->q = B->m/p;
         B->segment_length = B->q/4;
-
         B->matrix = (uint8_t*)malloc(B->m*1024);
+        memset(B->matrix,0,B->m*1024);
 
         return 0;
 
@@ -56,8 +73,9 @@ uint64_t Argon2d_generate_values(Argon2_matrix* B, uint32_t i, uint32_t j){
 
         Argon2_block buffer;
         uint32_t J[2];
+        j += B->q*(j==0);
         if(Argon2_matrix_get_block(i,j-1,&buffer,B))
-                printf("Warning: invalid indeces, reading random bytes from RAM");
+                printf("A2M:: Warning: invalid indeces, reading random bytes from RAM\n");
         memcpy(J,buffer.content,8);
 
         return *((uint64_t*)J);
@@ -88,6 +106,7 @@ void Argon2i_generate_values(Argon2_indexing_arguments* arg){
         CompressionFunctionG(zeros, arg->pairs, arg->pairs);
 
         arg->i++;
+        arg->counter = 0;
 }
 
 uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* B, uint64_t J){
@@ -127,7 +146,7 @@ uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* 
         index = referenceable_blocks - 1 - index;
         index+= first_referenceable_block;
         index = index % B->q;
-        index ^= ((uint64_t)l << 32);
+        index^= ((uint64_t)l << 32);
 
         return index;
 
@@ -136,10 +155,10 @@ uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* 
 uint64_t Argon2_indexing(Argon2_indexing_arguments* arg, Argon2_matrix* B){
 
         if(arg->x){
-                if(arg->counter % 128 == 0)
+                if(arg->counter == 128 || arg->counter == 0)
                         Argon2i_generate_values(arg);
-                
-                return Argon2_indexing_mapping( arg, B, arg->pairs[arg->counter%128-1]);
+                arg->counter++;
+                return Argon2_indexing_mapping( arg, B, arg->pairs[arg->counter-1]);
         }
         else
                 return Argon2_indexing_mapping( arg, B, Argon2d_generate_values(B, arg->l, arg->c));

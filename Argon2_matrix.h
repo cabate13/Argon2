@@ -31,7 +31,7 @@ typedef struct{
         // lane number
         uint64_t l;
         // column number
-        uint32_t c;
+        uint64_t c;
         // total memory blocks
         uint64_t m;
         // slice number
@@ -49,6 +49,9 @@ typedef struct{
 
 }Argon2_indexing_arguments;
 
+// Initializes the arguments for Argon2 indexing
+void Argon2_indexing_arguments_init(Argon2_indexing_arguments* args, uint32_t m, uint32_t t, uint32_t x);
+
 // Initializes the matrix and sets its parameters
 int Argon2_matrix_init(uint32_t m, uint32_t p, Argon2_matrix* B);
 
@@ -64,8 +67,8 @@ void Argon2_matrix_free(Argon2_matrix* B);
 // Indexing function
 /* Per avere la coppia di indici dell'indexing
 Poni ip l'uint64 che ti butta Argon indexing
+j = ip && 0x00000000FFFFFFFF
 i = ip » 32
-j = ip ^ 0x00000000FFFFFFFF
 */
 uint64_t Argon2_indexing(Argon2_indexing_arguments* arg, Argon2_matrix* B);
 
