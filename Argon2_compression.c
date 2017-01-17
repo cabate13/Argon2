@@ -17,9 +17,9 @@
 #define PRINT_MATRIX(m) {for(int k = 0; k < 8; k++){for(int cl = 0;cl<16;cl++)printf("%016llX ",m[k*16+cl]);printf("\n");}printf("\n");}
 #define PRINT_ARRAY(v) {for(int k = 0;k<16;k++)printf("%016llX ",v[k]);printf("\n");}
 
-void XOR128(uint64_t* X, uint64_t* Y, uint64_t* res, int n){
+void XOR_128(uint64_t* X, uint64_t* Y, uint64_t* res){
 
-    for(int i = 0; i<n; ++i)
+    for(int i = 0; i<128; ++i)
         res[i] = X[i]^Y[i];
 
 }
@@ -63,7 +63,7 @@ void CompressionFunctionG(uint64_t* X, uint64_t* Y, uint64_t* result)
 
         //the first XOR
         uint64_t R[128];
-        XOR128(X,Y,R,128);
+        XOR_128(X,Y,R);
 
         // Compute P on the rows of Q
         uint64_t Q[128];
@@ -91,7 +91,7 @@ void CompressionFunctionG(uint64_t* X, uint64_t* Y, uint64_t* result)
 
         }
 
-       	XOR128(Q,R,result,128);
+       	XOR_128(Q,R,result);
 
 }
 

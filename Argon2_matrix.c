@@ -12,12 +12,12 @@ void Argon2_indexing_arguments_init(Argon2_indexing_arguments* args, uint32_t m,
         args->t = t;
         args->x = x;
 
-        args->r = 0;
+        args->r = 1;            // step r starts from 1
         args->l = 0;
         args->c = 0;
         args->s = 0;
         args->t = 0;
-        args->i = 0;
+        args->i = 1;
         args->counter = 0;
 
 }
@@ -128,32 +128,32 @@ uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* 
         l = pair[1] % B->p;
 
                                                                                 // Compute R, set of referenceable blocks 
-        if(arg->r == 0){                                                        // First step
+        if(arg->r == 1){                                                        // First step
 
                 if(arg->s == 0)                                                 // First slice
-                        referenceable_blocks = arg->c - 1                       //   All computed blocks until now
+                        referenceable_blocks = arg->c - 1;                      //   All computed blocks until now
 
                 else{                                                           // Successive Slices
                         if(l == arg->l)                                         //   Same lane
-                                referenceable_blocks = s*B->segment_length +    //     all blocks computed in lane but not overwritten
-                                (arg->c % B->segment_length) - 1;               //     excluded B[i][j-1]
+                                referenceable_blocks = arg->s*B->segment_length //     all blocks computed in lane but not overwritten
+                                + (arg->c % B->segment_length) - 1;            //     excluded B[i][j-1]
                         else                                                    //   Different lanes
-                                referenceable_blocks = s*B->segment_length -    //     last s comuted segments
-                                ((arg->c % B->segment_length) == 0)             //     excluded the last element, if c is first of the
+                                referenceable_blocks = arg->s*B->segment_length //     last s comuted segments
+                                - ((arg->c % B->segment_length) == 0);          //     excluded the last element, if c is first of the
                                                                                 //     slice
                 }
                 first_referenceable_block = 0;                                  // In any case, start from the beginning of the lane
 
         }else{                                                                  // Successive steps
 
-                if(l == arg->l){                                                //   Same lane
+                if(l == arg->l)                                                 //   Same lane
                         referenceable_blocks = 3*B->segment_length +            //     all blocks computed in lane but not overwritten yet 
                         (arg->c % B->segment_length) - 1;                       //     excluded B[i][j-1]     
                 else                                                            //   Different lanes
                         referenceable_blocks = 3*B->segment_length -            //     last 3 computed segments
                         ((arg->c % B->segment_length) == 0);                    //     excluded the last element, if c is first of the slice
 
-                first_referenceable_block = (arg->s+1)*b->segment_length;       // In any case, start counting from the beginning of the 
+                first_referenceable_block = (arg->s+1 % 4)*B->segment_length;   // In any case, start counting from the beginning of the 
                                                                                 // next segment
         }
                                                                                 // Compute referenceable block
@@ -171,7 +171,7 @@ uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* 
 
 uint64_t Argon2_indexing(Argon2_indexing_arguments* arg, Argon2_matrix* B){
 
-        if(arg->x){
+        if(arg->x == 1){
                 if(arg->counter == 128 || arg->counter == 0)
                         Argon2i_generate_values(arg);
                 arg->counter++;
