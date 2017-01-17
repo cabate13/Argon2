@@ -1,6 +1,10 @@
 #include "Argon2_matrix.h"
 #include "Argon2_compression.h"
 
+#if !defined ERROR
+#define ERROR(msg) {puts((char*)msg); exit(1);}
+#endif
+
 // Initializes the arguments for indexing
 void Argon2_indexing_arguments_init(Argon2_indexing_arguments* args, uint32_t m, uint32_t t, uint32_t x){
         
@@ -75,7 +79,7 @@ uint64_t Argon2d_generate_values(Argon2_matrix* B, uint32_t i, uint32_t j){
         uint32_t J[2];
         j += B->q*(j==0);
         if(Argon2_matrix_get_block(i,j-1,&buffer,B))
-                printf("A2M:: Warning: invalid indeces, reading random bytes from RAM\n");
+                ERROR("A2M:: Invalid indeces, reading random bytes from RAM");
         memcpy(J,buffer.content,8);
 
         return *((uint64_t*)J);
@@ -120,33 +124,46 @@ uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* 
         pair[0] = (uint32_t)J;
         pair[1] = (uint32_t)(J >> 32);
 
-        // Compute total referenceable blocks
-        if(arg->r == 0 && arg->s == 0)
-                l = arg->l;
-        else
-                l = pair[1] % B->p;
 
-        if(l == arg->l){
-                // Computed blocks in that lane except c-1: |0 .. c-2|
-                referenceable_blocks = arg->c-1;
-                first_referenceable_block = 0;
-        }
-        else{
-                // Last three finished segments [i.e. the other three] | start of next segment ... |
-                // This is three segments long and starts in the next segment. If it is the case exclude
-                // last block.
-                referenceable_blocks = 3*B->segment_length - ((arg->c % B->segment_length) == 0);
-                first_referenceable_block = (arg->c/B->segment_length + 1) * B->segment_length;
-        }
+        l = pair[1] % B->p;
 
-        // Compute referenceable block
-        index = pair[0];
-        index = (index*index) >> 32;
-        index = (referenceable_blocks*index) >> 32;
-        index = referenceable_blocks - 1 - index;
-        index+= first_referenceable_block;
-        index = index % B->q;
-        index^= ((uint64_t)l << 32);
+                                                                                // Compute R, set of referenceable blocks 
+        if(arg->r == 0){                                                        // First step
+
+                if(arg->s == 0)                                                 // First slice
+                        referenceable_blocks = arg->c - 1                       //   All computed blocks until now
+
+                else{                                                           // Successive Slices
+                        if(l == arg->l)                                         //   Same lane
+                                referenceable_blocks = s*B->segment_length +    //     all blocks computed in lane but not overwritten
+                                (arg->c % B->segment_length) - 1;               //     excluded B[i][j-1]
+                        else                                                    //   Different lanes
+                                referenceable_blocks = s*B->segment_length -    //     last s comuted segments
+                                ((arg->c % B->segment_length) == 0)             //     excluded the last element, if c is first of the
+                                                                                //     slice
+                }
+                first_referenceable_block = 0;                                  // In any case, start from the beginning of the lane
+
+        }else{                                                                  // Successive steps
+
+                if(l == arg->l){                                                //   Same lane
+                        referenceable_blocks = 3*B->segment_length +            //     all blocks computed in lane but not overwritten yet 
+                        (arg->c % B->segment_length) - 1;                       //     excluded B[i][j-1]     
+                else                                                            //   Different lanes
+                        referenceable_blocks = 3*B->segment_length -            //     last 3 computed segments
+                        ((arg->c % B->segment_length) == 0);                    //     excluded the last element, if c is first of the slice
+
+                first_referenceable_block = (arg->s+1)*b->segment_length;       // In any case, start counting from the beginning of the 
+                                                                                // next segment
+        }
+                                                                                // Compute referenceable block
+        index = pair[0];                                                        //   J
+        index = (index*index) >> 32;                                            //   J^2 / 2^32 =: x
+        index = (referenceable_blocks*index) >> 32;                             //   (|R|* x) / 2^32 =: y
+        index = referenceable_blocks - 1 - index;                               //   (|R| - 1 - y) =: z
+        index+= first_referenceable_block;                                      //   choose z-th block from the start of R
+        index = index % B->q;                                                   //   |
+        index^= ((uint64_t)l << 32);                                            //   Save index pair as ( lane || column ) 
 
         return index;
 

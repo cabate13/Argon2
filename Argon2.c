@@ -25,7 +25,7 @@ int main(){
         args.tau = 32;
         args.m = 32; // 32 KiB
         args.t = 3;
-        args.v = 0x13; // Per qualche motivo questo è 0x10 secondo i test vectors
+        args.v = 0x13; 
         args.size_K = 8;
         args.K = K;
         args.X = X;

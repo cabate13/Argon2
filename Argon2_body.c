@@ -34,23 +34,7 @@ void compute_H0(Argon2_arguments* args, uint8_t* H0){
 	CAT_N(H0_input_curr,&(args->size_X),4);
 	CAT_N(H0_input_curr,args->X,args->size_X);
 
-	/*printf("H0_input: \n");
-	for(int i = 0;i<H0_input_curr - H0_input;i++){
-
-		printf("%02X ", H0_input[i]);
-
-	}printf("\n");*/
-
-
 	blake2b((void*)H0, 64, (void*)H0_input,  H0_input_curr - H0_input, NULL, 0);
-
-
-	/*printf("H0: \n");
-	for(int i = 0;i<8;i++){
-		for(int j = 0;j<8;j++)
-			printf("%02X ", H0[8*i+j]);
-		printf("\n");
-	}*/
 
 	free(H0_input);
 
@@ -68,14 +52,11 @@ void ComputeFirstBlock01(Argon2_matrix* B, uint8_t* H0, uint32_t tau, uint8_t c_
 	uint8_t* HprimeInput;
 	Argon2_block block;
 
+	memset(block.content,0,1024);
+
 	HprimeInput = (uint8_t*) malloc(72); // 64 for H0 + 4 + 4
 	memcpy(HprimeInput, H0, 64); //copy H0 into HprimeInput
 	memset(HprimeInput+64,c_byte,4);
-
-	/*printf("HprimeInput: \n");
-	for(int i = 0; i<68;i++)
-		printf("%02X ", HprimeInput[i]);
-	printf("\n");*/
 
 	for(uint32_t i=0; i< B->p; i++)
 	{
@@ -84,8 +65,7 @@ void ComputeFirstBlock01(Argon2_matrix* B, uint8_t* H0, uint32_t tau, uint8_t c_
 		Hprime(HprimeInput, 72, 1024, block.content);
 
 		if(Argon2_matrix_fill_block(i,0x01&&c_byte,B,&block))
-			ERROR("A2B:: Unable to write block01");
-		
+			ERROR("A2B:: Unable to write block01");	
 
 	}
 
@@ -97,12 +77,6 @@ void ComputeFirstBlock01(Argon2_matrix* B, uint8_t* H0, uint32_t tau, uint8_t c_
 void ComputeFirstBlock(Argon2_matrix* B, uint8_t*H0, uint32_t tau, Argon2_indexing_arguments* args)
 {
 	ComputeFirstBlock01(B,H0,tau,0x00);
-
-	printf("Block 0: \n");
-	for(int i = 0;i < 1024;i++)
-		printf("%02X ", *(B->matrix+i));
-	printf("\n");
-
 	ComputeFirstBlock01(B,H0,tau,0xFF);
 
 	uint64_t iprime;
@@ -248,11 +222,8 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
 	// Start blocks computation
 	ComputeFirstBlock(&B, H0, args->tau, &args_i);
 
-	for(;args_i.r < args_i.t;args_i.r++){
-
+	for(;args_i.r < args_i.t;args_i.r++)
 		ComputeBlock(&B, &args_i);
-
-	}
 
 	Argon2_block B_final;
 	BFinal(&B, &B_final);
