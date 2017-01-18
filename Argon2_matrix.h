@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
-#include "blake2b.h"
 
 typedef struct{
 

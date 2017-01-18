@@ -16,7 +16,6 @@ void Argon2_indexing_arguments_init(Argon2_indexing_arguments* args, uint32_t m,
         args->l = 0;
         args->c = 0;
         args->s = 0;
-        args->t = 0;
         args->i = 1;
         args->counter = 0;
 
@@ -136,7 +135,7 @@ uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* 
                 else{                                                           // Successive Slices
                         if(l == arg->l)                                         //   Same lane
                                 referenceable_blocks = arg->s*B->segment_length //     all blocks computed in lane but not overwritten
-                                + (arg->c % B->segment_length) - 1;            //     excluded B[i][j-1]
+                                + (arg->c % B->segment_length) - 1;             //     excluded B[i][j-1]
                         else                                                    //   Different lanes
                                 referenceable_blocks = arg->s*B->segment_length //     last s comuted segments
                                 - ((arg->c % B->segment_length) == 0);          //     excluded the last element, if c is first of the

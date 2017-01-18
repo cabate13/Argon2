@@ -45,7 +45,7 @@ void compute_H0(Argon2_arguments* args, uint8_t* H0){
 //tau is the 32 bit tag length
 //ZeroOne is to discriminate among B[][0] and B[][1]
 //p is a parameter coming from Haven
-void ComputeFirstBlock01(Argon2_matrix* B, uint8_t* H0, uint32_t tau, uint8_t c_byte){
+void ComputeFirstBlock01(Argon2_matrix* B, uint8_t* H0, uint32_t tau, uint32_t c){
 	
 	uint8_t* HprimeInput;
 	Argon2_block block;
@@ -54,7 +54,8 @@ void ComputeFirstBlock01(Argon2_matrix* B, uint8_t* H0, uint32_t tau, uint8_t c_
 
 	HprimeInput = (uint8_t*) malloc(72); // 64 for H0 + 4 + 4
 	memcpy(HprimeInput, H0, 64); //copy H0 into HprimeInput
-	memset(HprimeInput+64,c_byte,4);
+	//memset(HprimeInput+64,c_byte,4);
+	memcpy(HprimeInput+64, &c, 4);
 
 	for(uint32_t i=0; i< B->p; i++)
 	{
@@ -62,7 +63,7 @@ void ComputeFirstBlock01(Argon2_matrix* B, uint8_t* H0, uint32_t tau, uint8_t c_
 		memcpy(HprimeInput+68, &i, 4);
 		Hprime(HprimeInput, 72, 1024, block.content);
 
-		if(Argon2_matrix_fill_block(i,0x01&&c_byte,B,&block))
+		if(Argon2_matrix_fill_block(i,c,B,&block))
 			ERROR("A2B:: Unable to write block01");	
 
 	}
@@ -96,7 +97,7 @@ void ComputeBlock(Argon2_matrix* B, Argon2_indexing_arguments* args){
 				iprime = iprime >> 32;
 
 				if(Argon2_matrix_get_block(args->l,args->c-1 + 			// Get block B[l][c-1 mod B->q]
-							   ((args->c == 0) ? 0 : B->q), 
+							   ((args->c == 0) ? B->q : 0), 
 							   &block, B))	
 					ERROR("A2B:: Unable to get block [l,c-1]");
 				if(Argon2_matrix_get_block(iprime,jprime, &indexedBlock, B))	// Get block B[i'][j']
@@ -120,16 +121,26 @@ void ComputeBlock(Argon2_matrix* B, Argon2_indexing_arguments* args){
 /*
 * Function to get th final block, remember to initialize Bfinal.content to the vector of all zeros
 */
-void BFinal(Argon2_matrix* B, Argon2_block* Bfinal)
-{
+void BFinal(Argon2_matrix* B, Argon2_block* Bfinal){
+
 	Argon2_block block;
 
-	for (int i = 0; i < B->p; ++i)
+	for (uint32_t i = 0; i < B->p; ++i)
 	{
+		printf("XOR block: [%u][%u]\n",i,B->q-1);
 		if(Argon2_matrix_get_block(i, B->q-1, &block,B))
 			ERROR("A2B:: Unable to get final blocks");
 
+		uint64_t* tmp = (uint64_t*)block.content;
+		printf("B[%d][7][0..15]: %016llX ", i,*tmp);
+		printf("B[%d][7][16..31]: %016llX \n", i,*(tmp+1));
+
 		XOR_128((uint64_t*)(Bfinal->content), (uint64_t*)(block.content), (uint64_t*)(Bfinal->content));
+
+		tmp = (uint64_t*)Bfinal->content;
+		printf("B_final[0..15]: %016llX ",*(tmp));
+		printf("B_final[16..31]: %016llX \n\n",*(tmp+1));
+		
 	}
 }
 
@@ -147,17 +158,55 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
 	// Compute H0
 	uint8_t H0[64];
 	compute_H0(args,H0);
+	printf("H0:\n");
+	for(int j = 0;j<8;j++){
+		for(int i = 0;i<8;i++)
+			printf("%02X ",H0[i+8*j]);
+		printf("\n");
+	}printf("\n");
 
 	// Start blocks computation
-	ComputeFirstBlock01(&B,H0,args->tau,0x00);
-	ComputeFirstBlock01(&B,H0,args->tau,0xFF);
+	ComputeFirstBlock01(&B,H0,args->tau,0);
 
-	for(args_i.r = 1; args_i.r < args_i.t; args_i.r++)
+	uint64_t* tmp = (uint64_t*)B.matrix;
+	Argon2_block tmp_block;
+	tmp = (uint64_t*)tmp_block.content;
+	
+	for(int k = 0;k<B.p;k++){
+		Argon2_matrix_get_block(k,0,&tmp_block,&B);
+		for(int i = 0; i<4;i++){
+			printf("B[%d][0][%d..%d]: %016llX  ", k, 16*i, 16*(i+1),*(tmp+i));
+		}printf("\n");
+	}printf("\n");
+
+	ComputeFirstBlock01(&B,H0,args->tau,1);
+	
+	for(int k = 0;k<B.p;k++){
+		Argon2_matrix_get_block(k,1,&tmp_block,&B);
+		for(int i = 0; i<4;i++){
+			printf("B[%d][1][%d..%d]: %016llX  ", k, 16*i, 16*(i+1),*(tmp+i));
+		}printf("\n");
+	}printf("\n");
+	
+	printf("args_i.t: %llu\n", args_i.t);
+
+	for(args_i.r = 1; args_i.r <= args_i.t; args_i.r++){
 		ComputeBlock(&B, &args_i);
+		for(int k = 0;k<B.p;k++){
+			Argon2_matrix_get_block(k,7,&tmp_block,&B);
+			for(int i = 0; i<4;i++){
+				printf("B_%llu[%d][7][%d..%d]: %016llX  ", args_i.r, k, 16*i, 16*(i+1),*(tmp+i));
+			}printf("\n");
+		}printf("\n");
+	}
+
+	// ------ ^ OK ^ -------
 
 	Argon2_block B_final;
+	memset(B_final.content,0,1024);
 	BFinal(&B, &B_final);
 	
+	printf("args->tau: %u", args->tau);
 	Hprime(B_final.content, 1024, args->tau, tag);
 
 	// free memory
