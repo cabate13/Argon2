@@ -3,6 +3,14 @@
 #include <stdint.h>
 #include <string.h>
 
+/*
+Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
+Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
+Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
+Secret[8]: 03 03 03 03 03 03 03 03 
+Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04 
+*/
+
 int main(){
 
         Argon2_arguments args;
@@ -35,7 +43,7 @@ int main(){
         Argon2(&args, tag);
 
         printf("tag: ");
-        for(int i = 0;i < 16;i++)
+        for(int i = 0;i < args.tau; i++)
                 printf("%02X ", tag[i]);
         printf("\n");
 
