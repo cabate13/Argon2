@@ -21,6 +21,6 @@
 #define BLAKE2B
 
 // Blake2b hash function function
-void blake2b( void* digest, size_t nn, void* data, size_t ll, void* key, size_t kk);
+void blake2b( void* digest, size_t nn, void* data, size_t ll);
 
 #endif

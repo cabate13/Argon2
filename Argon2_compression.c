@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 #include "blake2b.h"
@@ -13,9 +12,6 @@
 // Truncation of the 32 lsb of a uint64_t, without changing its type
 #define TRUNC_32(m) (m & 0x00000000FFFFFFFF)
 #endif
-
-#define PRINT_MATRIX(m) {for(int k = 0; k < 8; k++){for(int cl = 0;cl<16;cl++)printf("%016llX ",m[k*16+cl]);printf("\n");}printf("\n");}
-#define PRINT_ARRAY(v) {for(int k = 0;k<16;k++)printf("%016llX ",v[k]);printf("\n");}
 
 void XOR_128(uint64_t* X, uint64_t* Y, uint64_t* res){
 
@@ -106,7 +102,7 @@ void Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
 
         //digest depends on the value of tau
         if(tau <= 64)
-                blake2b(digest,tau,tauCatX,sizeX+4, NULL, 0);
+                blake2b(digest,tau,tauCatX,sizeX+4);
 
         else
         {
@@ -114,20 +110,21 @@ void Hprime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
                 uint8_t V[64];
 
                 //apply blake2b to tau||X to find V_1
-                blake2b(V,64,tauCatX, sizeX+4, NULL,0);
+                blake2b(V,64,tauCatX, sizeX+4);
                 memcpy(digest, V, 32);
 
                 // Compute V_(i+1) = blake2b(V_i)
                 // Copy the first 32 bits of V_i+1 to the digest
                 for (int i = 1; i < r; ++i)
                 {
-                        blake2b(V,64,V,64, NULL,0);
+                        blake2b(V,64,V,64);
                         memcpy(digest+i*32, V, 32);
 
                 }
 
-                blake2b(V, tau-32*r, V,64, NULL,0);
+                blake2b(V, tau-32*r, V,64);
                 memcpy(digest+r*32,V, tau-32*r);
+
 
         }
              

@@ -34,7 +34,7 @@ void compute_H0(Argon2_arguments* args, uint8_t* H0){
 	CAT_N(H0_input_curr,&(args->size_X),4);
 	CAT_N(H0_input_curr,args->X,args->size_X);
 
-	blake2b((void*)H0, 64, (void*)H0_input,  H0_input_curr - H0_input, NULL, 0);
+	blake2b((void*)H0, 64, (void*)H0_input,  H0_input_curr - H0_input);
 
 	free(H0_input);
 
@@ -127,20 +127,12 @@ void BFinal(Argon2_matrix* B, Argon2_block* Bfinal){
 
 	for (uint32_t i = 0; i < B->p; ++i)
 	{
-		printf("XOR block: [%u][%u]\n",i,B->q-1);
+
 		if(Argon2_matrix_get_block(i, B->q-1, &block,B))
 			ERROR("A2B:: Unable to get final blocks");
 
-		uint64_t* tmp = (uint64_t*)block.content;
-		printf("B[%d][7][0..15]: %016llX ", i,*tmp);
-		printf("B[%d][7][16..31]: %016llX \n", i,*(tmp+1));
-
 		XOR_128((uint64_t*)(Bfinal->content), (uint64_t*)(block.content), (uint64_t*)(Bfinal->content));
 
-		tmp = (uint64_t*)Bfinal->content;
-		printf("B_final[0..15]: %016llX ",*(tmp));
-		printf("B_final[16..31]: %016llX \n\n",*(tmp+1));
-		
 	}
 }
 
@@ -158,55 +150,17 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
 	// Compute H0
 	uint8_t H0[64];
 	compute_H0(args,H0);
-	printf("H0:\n");
-	for(int j = 0;j<8;j++){
-		for(int i = 0;i<8;i++)
-			printf("%02X ",H0[i+8*j]);
-		printf("\n");
-	}printf("\n");
 
 	// Start blocks computation
 	ComputeFirstBlock01(&B,H0,args->tau,0);
-
-	uint64_t* tmp = (uint64_t*)B.matrix;
-	Argon2_block tmp_block;
-	tmp = (uint64_t*)tmp_block.content;
-	
-	for(int k = 0;k<B.p;k++){
-		Argon2_matrix_get_block(k,0,&tmp_block,&B);
-		for(int i = 0; i<4;i++){
-			printf("B[%d][0][%d..%d]: %016llX  ", k, 16*i, 16*(i+1),*(tmp+i));
-		}printf("\n");
-	}printf("\n");
-
 	ComputeFirstBlock01(&B,H0,args->tau,1);
-	
-	for(int k = 0;k<B.p;k++){
-		Argon2_matrix_get_block(k,1,&tmp_block,&B);
-		for(int i = 0; i<4;i++){
-			printf("B[%d][1][%d..%d]: %016llX  ", k, 16*i, 16*(i+1),*(tmp+i));
-		}printf("\n");
-	}printf("\n");
-	
-	printf("args_i.t: %llu\n", args_i.t);
 
-	for(args_i.r = 1; args_i.r <= args_i.t; args_i.r++){
+	for(args_i.r = 1; args_i.r <= args_i.t; args_i.r++)
 		ComputeBlock(&B, &args_i);
-		for(int k = 0;k<B.p;k++){
-			Argon2_matrix_get_block(k,7,&tmp_block,&B);
-			for(int i = 0; i<4;i++){
-				printf("B_%llu[%d][7][%d..%d]: %016llX  ", args_i.r, k, 16*i, 16*(i+1),*(tmp+i));
-			}printf("\n");
-		}printf("\n");
-	}
-
-	// ------ ^ OK ^ -------
-
+	
 	Argon2_block B_final;
 	memset(B_final.content,0,1024);
 	BFinal(&B, &B_final);
-	
-	printf("args->tau: %u", args->tau);
 	Hprime(B_final.content, 1024, args->tau, tag);
 
 	// free memory
