@@ -19,12 +19,11 @@
 
 // Constant definition
 
-#define ww 64
-#define r 12
-#define bb 128
-#define max_nn 64
-#define mak_kk 64
-#define R1 32
+#define ww 64       // Bits in word
+#define r 12        // Rounds in F
+#define bb 128      // Block bytes
+#define max_nn 64   // max bytes in hash
+#define R1 32       // ROT_SHIFT offsets
 #define R2 24
 #define R3 16
 #define R4 63
@@ -88,9 +87,9 @@ void B2B_F(uint64_t* h, uint64_t* m, uint64_t* t, int f ){
     v[13] ^= t[1];
 
     if(f)
-            v[14] ^= 0xFFFFFFFFFFFFFFFF;
+            v[14] = ~v[14];
 
-    // Mixing
+    // Mixing 
 
     for(int i = 0; i < r;i++){
 
@@ -113,10 +112,10 @@ void B2B_F(uint64_t* h, uint64_t* m, uint64_t* t, int f ){
 
 // Initializes data and manages rounds
 
-void blake2b( void* digest, size_t nn, void* data, size_t ll, void* key, size_t kk){
+void blake2b( void* digest, size_t nn, void* data, size_t ll){
 
         // equivalent to ceil(ll/bb) + ceil(kk/bb)
-        size_t dd = (ll/bb) + (ll%bb!=0) + (kk>0); 
+        size_t dd = (ll/bb) + (ll%bb!=0); 
         uint64_t h[8];
         uint64_t t[2];
         uint8_t buffer[bb];
@@ -124,37 +123,16 @@ void blake2b( void* digest, size_t nn, void* data, size_t ll, void* key, size_t 
         t[0] = 0;
         t[1] = 0;
         memcpy(h,IV,ww);
-        h[0] = h[0] ^ 0x01010000 ^ (kk << 8) ^ nn;
+        h[0] = h[0] ^ 0x01010000 ^ nn;
 
         // Questa la lasciamo per ora, può essere utile in fase di sviluppo, poi gli errori dovrebbero
         // essere gestiti a monte quando si inizializza Argon2
         // Handle exceptions:
-        if( nn<1 || nn > 64 || kk > 64 )
+        if( nn<1 || nn > 64 )
             ERROR("B2B:: Parameters out of bounds.\n");
         
         if(ll>0 && data == NULL)
             ERROR("B2B:: Missing data.\n");
-
-        if(ll == 0){
-            if(kk == 0){
-                puts("B2B:: Warning: Unkeyed empty message.\n");
-                memset(buffer,0,bb);
-                t[0]+=bb;
-                B2B_F(h,(uint64_t*)buffer,t,1);
-                memcpy(digest,h,nn);
-                return;
-            }else
-                ERROR("B2B:: Keyed empty message, unspecified behaviour.");
-
-        }
-
-        // Use the key, if any is given
-        if(kk>0){
-                memcpy(buffer,key,kk);          // Load key in buffer
-                memset(buffer+kk,0,bb-kk);      // Pad key with zeros
-                t[0]+=bb;                       // Update data offset
-                B2B_F(h,(uint64_t*)buffer,t,0); // Apply compression
-        }
 
         // Compress data, except last block
         for(size_t block_counter = 0;block_counter < dd-1; block_counter++){
@@ -162,17 +140,17 @@ void blake2b( void* digest, size_t nn, void* data, size_t ll, void* key, size_t 
                 t[0]+=bb;                                       // Update data offset
                 if(t[0]<bb)                                     // Manage carry
                         t[1]++;                                 //
-                B2B_F(h,(uint64_t*)buffer,t,0);                     // Apply compression
+                B2B_F(h,(uint64_t*)buffer,t,0);                 // Apply compression
         }
 
         // Last block
-        memcpy(buffer,data+ll/bb,ll%bb);        // Load last block in buffer
+        memcpy(buffer,data+(ll/bb)*bb,ll%bb);        // Load last block in buffer
         memset(buffer+(ll%bb),0,bb-ll%bb);      // Pad with zeros
-        t[0]+=ll%bb;                            // Update data offset
+        t[0]+=(ll % bb == 0) ? bb : ll%bb;      // Update data offset
         if(t[0]<(ll%bb))                        // Manage carry
-                t[1]++;                         // 
-        B2B_F(h,(uint64_t*)buffer,t,1);         // Apply compression
-
+                t[1]++; 
+                       // 
+        B2B_F(h,(uint64_t*)buffer,t,1);         // Apply compression 
         // Output the required nn bytes
         memcpy(digest,h,nn);
 
