@@ -1,4 +1,5 @@
 #include "Argon2_matrix.h"
+#include <omp.h>
 
 #if !defined A2_BODY
 
