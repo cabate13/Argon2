@@ -6,7 +6,7 @@
 #include "Argon2_compression.h"
 #include "blake2b.h"
 
-const uint8_t HprimeInput[72] = {0xB8, 0x81, 0x97, 0x91, 0xA0, 0x35, 0x96, 0x60,
+const uint8_t H_prime_input[72] = {0xB8, 0x81, 0x97, 0x91, 0xA0, 0x35, 0x96, 0x60,
                                  0xBB, 0x77, 0x09, 0xC8, 0x5F, 0xA4, 0x8F, 0x04, 
                                  0xD5, 0xD8, 0x2C, 0x05, 0xC5, 0xF2, 0x15, 0xCC, 
                                  0xDB, 0x88, 0x54, 0x91, 0x71, 0x7C, 0xF7, 0x57, 
@@ -26,7 +26,7 @@ int main(void)
         memset(X,0x12,128*sizeof(uint64_t));
         memset(Y,0x13,128*sizeof(uint64_t));
 
-        CompressionFunctionG(X, Y, result);
+        A2_G(X, Y, result);
 
         printf("A2CT:: Compression of 0x12 and 0x13:\n");
         for(int i = 0; i<128;i++){
@@ -39,18 +39,18 @@ int main(void)
         uint64_t digest[4];
         uint8_t digest1[1024];
 
-        // Hprime((uint8_t*)X, 1024, 4*64, (uint8_t*)digest);
+        H_prime((uint8_t*)X, 1024, 4*64, (uint8_t*)digest);
 
-        // printf("A2CT:: Hash H' of 0x12:\n");
-        // for(int i = 0;i<4;i++){
+        printf("A2CT:: Hash H' of 0x12:\n");
+        for(int i = 0;i<4;i++){
 
-        //     printf("%016llX ",digest[i]);
+            printf("%016llX ",digest[i]);
 
-        // }
-        // printf("\n");
+        }
+        printf("\n");
 
         for(int i = 1;i<1025;i++)
-        Hprime((uint8_t*)HprimeInput, 72, i, digest1);
+        H_prime((uint8_t*)H_prime_input, 72, i, digest1);
 
         return 0;
 }

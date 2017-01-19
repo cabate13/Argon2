@@ -1,11 +1,8 @@
+#include "Argon2_matrix.h"
+
 #if !defined A2_BODY
 
 #define A2_BODY
-
-#include "blake2b.h"
-#include "Argon2_compression.h"
-#include "Argon2_matrix.h"
-
 
 typedef struct{
 
