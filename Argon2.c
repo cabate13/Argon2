@@ -1,7 +1,4 @@
 #include "Argon2_body.h"
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
 
 #define TEST_FOR_MEMORY_LEAKS 0
 

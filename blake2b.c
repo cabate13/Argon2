@@ -5,24 +5,16 @@
 //      
 //      Credits to:  Jean-Philippe Aumasson, Samuel Neves, Zooko Wilcox-O'Hearn, and Christian Winnerlein
 //
-//  Notation and function names are used accordingly to this independent IETF submission:
-//  https://tools.ietf.org/html/rfc7693
-//
-//  Credits to: M-J. Saarinen, Ed.
-//
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include "blake2b.h"
+#include "Blake2b.h"
 
 // Constants definition
 
-#define ww 64       // Bits in word
-#define r 12        // Rounds in F
-#define bb 128      // Block bytes
-#define max_nn 64   // max bytes in hash
+#define WORD_LENGTH 64       
+#define ROUNDS_NUMER 12            
+#define BLOCK_LENGTH 128      
+#define WORKSPACE_LENGTH 8  
+
 #define R1 32       // ROT_SHIFT offsets
 #define R2 24
 #define R3 16
@@ -50,16 +42,6 @@ static const uint64_t IV[8] = {
     0x1F83D9ABFB41BD6B, 0x5BE0CD19137E2179
 };
 
-// Functions prototypes
-#if !defined ERROR
-#define ERROR(msg) {puts((char*)msg); exit(1);}
-#endif
-#if !defined ROT_SHIFT
-#define ROT_SHIFT(array,offset) (((array) >> (offset)) ^ ((array) << (64 - (offset))))
-#endif
-void B2B_G(uint64_t* work_vector, int a, int b, int c, int d, uint64_t x, uint64_t y);
-void B2B_F(uint64_t* h, uint64_t* m, uint64_t* t, int f );
-
 // B2B_G [mixing function]
 
 void B2B_G(uint64_t* v, int a, int b, int c, int d, uint64_t x, uint64_t y){
@@ -74,14 +56,19 @@ void B2B_G(uint64_t* v, int a, int b, int c, int d, uint64_t x, uint64_t y){
     v[b] = ROT_SHIFT((v[b]^v[c]) , R4);
 }
 
-// F [compression function]
+/*
+ * Main compression function of Blake2b, takes as input a workspace uint64_t h[8],
+ * a data buffer uint64_t m[16], a 128-bit precision counter and a flag to differentiate
+ * the last data block.
+ */
 
 void B2B_F(uint64_t* h, uint64_t* m, uint64_t* t, int f ){
+
     // Initialize local work vectors
-    uint64_t v[16];
+    uint64_t v[2*WORKSPACE_LENGTH];
     const size_t* s;
-    memcpy(v,h,ww);
-    memcpy(v+8,IV,ww);
+    memcpy(v,h,WORD_LENGTH);
+    memcpy(v+WORKSPACE_LENGTH,IV,WORD_LENGTH);
 
     v[12] ^= t[0];
     v[13] ^= t[1];
@@ -89,9 +76,8 @@ void B2B_F(uint64_t* h, uint64_t* m, uint64_t* t, int f ){
     if(f)
             v[14] = ~v[14];
 
-    // Mixing 
-
-    for(int i = 0; i < r;i++){
+    // Mixing procedure
+    for(int i = 0; i < ROUNDS_NUMER;i++){
 
         B2B_G( v, 0, 4,  8, 12, m[SIGMA[i][ 0]], m[SIGMA[i][ 1]] );
         B2B_G( v, 1, 5,  9, 13, m[SIGMA[i][ 2]], m[SIGMA[i][ 3]] );
@@ -105,54 +91,43 @@ void B2B_F(uint64_t* h, uint64_t* m, uint64_t* t, int f ){
     }
 
     // Write the result
-    for(int i = 0; i < 8; i++)
-        h[i] = h[i] ^ v[i] ^ v[i+8];
+    for(int i = 0; i < WORKSPACE_LENGTH; i++)
+        h[i] = h[i] ^ v[i] ^ v[i+WORKSPACE_LENGTH];
 
 }
 
-// Initializes data and manages rounds
+/*
+ * Blake2b hash function. Takes an uint8_t data[data_size] and outputs an uint8_t digest[digest_size] 
+ */
+void blake2b( uint8_t* digest, size_t digest_size, uint8_t* data, uint64_t data_size){
 
-void blake2b( void* digest, size_t nn, void* data, size_t ll){
+    // equivalent to ceil(data_size/BLOCK_LENGTH) + ceil(kk/BLOCK_LENGTH)
+    size_t dd = (data_size/BLOCK_LENGTH) + (data_size%BLOCK_LENGTH!=0); 
+    uint64_t h[WORKSPACE_LENGTH];
+    uint64_t t[2];
+    uint8_t buffer[BLOCK_LENGTH];
+    
+    t[0] = 0;
+    t[1] = 0;
+    memcpy(h,IV,WORD_LENGTH);
+    h[0] = h[0] ^ 0x01010000 ^ digest_size;
 
-        // equivalent to ceil(ll/bb) + ceil(kk/bb)
-        size_t dd = (ll/bb) + (ll%bb!=0); 
-        uint64_t h[8];
-        uint64_t t[2];
-        uint8_t buffer[bb];
-        
-        t[0] = 0;
-        t[1] = 0;
-        memcpy(h,IV,ww);
-        h[0] = h[0] ^ 0x01010000 ^ nn;
+    for(size_t block_counter = 0;block_counter < dd-1; block_counter++){                // Compress data, except last block:
+            memcpy(buffer,data+BLOCK_LENGTH*block_counter,BLOCK_LENGTH);                // Load data block in buffer
+            t[0]+=BLOCK_LENGTH;                                                         // Update data offset
+            if(t[0]<BLOCK_LENGTH)                                                       // Manage carry
+                    t[1]++;                                                 
+            B2B_F(h,(uint64_t*)buffer,t,0);                                             // Apply compression
+    }
+                                                                                        // Compress last block:
+    memcpy(buffer,data+(data_size/BLOCK_LENGTH)*BLOCK_LENGTH,data_size%BLOCK_LENGTH);   //  Load last block in buffer
+    memset(buffer+(data_size%BLOCK_LENGTH),0,BLOCK_LENGTH-data_size%BLOCK_LENGTH);      //  Pad with zeros
+    t[0]+=(data_size % BLOCK_LENGTH == 0) ? BLOCK_LENGTH : data_size%BLOCK_LENGTH;      //  Update data offset
+    if(t[0]<(data_size%BLOCK_LENGTH))                                                   //  Manage carry
+            t[1]++;  
+    B2B_F(h,(uint64_t*)buffer,t,1);                                                     //  Apply compression 
 
-        // Questa la lasciamo per ora, può essere utile in fase di sviluppo, poi gli errori dovrebbero
-        // essere gestiti a monte quando si inizializza Argon2
-        // Handle exceptions:
-        if( nn<1 || nn > 64 )
-            ERROR("B2B:: Parameters out of bounds.\n");
-        
-        if(ll>0 && data == NULL)
-            ERROR("B2B:: Missing data.\n");
-
-        // Compress data, except last block
-        for(size_t block_counter = 0;block_counter < dd-1; block_counter++){
-                memcpy(buffer,data+bb*block_counter,bb);        // Load data block in buffer
-                t[0]+=bb;                                       // Update data offset
-                if(t[0]<bb)                                     // Manage carry
-                        t[1]++;                                 //
-                B2B_F(h,(uint64_t*)buffer,t,0);                 // Apply compression
-        }
-
-        // Last block
-        memcpy(buffer,data+(ll/bb)*bb,ll%bb);        // Load last block in buffer
-        memset(buffer+(ll%bb),0,bb-ll%bb);      // Pad with zeros
-        t[0]+=(ll % bb == 0) ? bb : ll%bb;      // Update data offset
-        if(t[0]<(ll%bb))                        // Manage carry
-                t[1]++; 
-                       // 
-        B2B_F(h,(uint64_t*)buffer,t,1);         // Apply compression 
-        // Output the required nn bytes
-        memcpy(digest,h,nn);
+    memcpy(digest,h,digest_size);                                                 // Output the required digest_size bytes
 
 }
 

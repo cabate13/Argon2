@@ -1,9 +1,4 @@
 #include "Argon2_matrix.h"
-#include "Argon2_compression.h"
-
-#if !defined ERROR
-#define ERROR(msg) {puts((char*)msg); exit(1);}
-#endif
 
 // Initializes the arguments for indexing
 void Argon2_indexing_arguments_init(Argon2_indexing_arguments* args, uint32_t m, uint32_t t, uint32_t x){
@@ -104,8 +99,8 @@ void Argon2i_generate_values(Argon2_indexing_arguments* arg){
 
         memset(input+7, 0, 121*sizeof(uint64_t));               // Remaining 968 positions are 0x00
 
-        CompressionFunctionG(zeros, input, arg->pairs);         // Run G(0,G(0,Input));
-        CompressionFunctionG(zeros, arg->pairs, arg->pairs);
+        A2_G(zeros, input, arg->pairs);                         // Run G(0,G(0,Input));
+        A2_G(zeros, arg->pairs, arg->pairs);
 
         arg->i++;                                               // Increase counter of applications
         arg->counter = 0;                                       // Restore counter of used blocks

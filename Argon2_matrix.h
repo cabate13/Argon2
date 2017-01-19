@@ -1,11 +1,7 @@
-// Creates and manages the matrix B
+#include "Argon2_compression.h"
 
 #if !defined A2_MATRIX
 #define A2_MATRIX
-
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
 
 typedef struct{
 
@@ -61,15 +57,10 @@ int Argon2_matrix_fill_block(uint32_t i, uint32_t j, Argon2_matrix* dst, Argon2_
 // Gets the block in position (i,j) in the Argon2 matrix B, storing the content in the dst block
 int Argon2_matrix_get_block(uint32_t i, uint32_t j, Argon2_block* dst, Argon2_matrix* src);
 
-// GC
+// Safely free memory allocated for the matrix
 void Argon2_matrix_free(Argon2_matrix* B);
 
 // Indexing function
-/* Per avere la coppia di indici dell'indexing
-Poni ip l'uint64 che ti butta Argon indexing
-j = ip && 0x00000000FFFFFFFF
-i = ip » 32
-*/
 uint64_t Argon2_indexing(Argon2_indexing_arguments* arg, Argon2_matrix* B);
 
 #endif
