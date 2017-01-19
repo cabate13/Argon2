@@ -12,7 +12,7 @@ void Argon2_indexing_arguments_init(Argon2_indexing_arguments* args, uint32_t m,
         args->t = t;
         args->x = x;
 
-        args->r = 1;            // step r starts from 1
+        args->r = 0;            // step r starts from 1
         args->l = 0;
         args->c = 0;
         args->s = 0;
@@ -92,24 +92,23 @@ void Argon2i_generate_values(Argon2_indexing_arguments* arg){
         uint64_t zeros[128];
         uint64_t input[128];
 
-        memset(zeros,0,128*sizeof(uint64_t));
+        memset(zeros,0,128*sizeof(uint64_t));                   // Build auxiliary input [0...0]
+                                                                // Build input [r||l||s||m||t||x||i||0..0]
+        input[0] = arg->r;                                      // r: pass
+        input[1] = arg->l;                                      // l: lane
+        input[2] = arg->s;                                      // s: slice
+        input[3] = arg->m;                                      // m: total memory
+        input[4] = arg->t;                                      // t: total number f passes
+        input[5] = arg->x;                                      // x: Argon2 type number
+        input[6] = arg->i;                                      // i: counter of generate_values applications
 
-        input[0] = arg->r;
-        input[1] = arg->l;
-        input[2] = arg->s;
-        input[3] = arg->m;
-        input[4] = arg->t;
-        input[5] = arg->x;
-        input[6] = arg->i;
-        input[7] = 0;
+        memset(input+7, 0, 121*sizeof(uint64_t));               // Remaining 968 positions are 0x00
 
-        memset(input+8, 0, 120*sizeof(uint64_t));
-
-        CompressionFunctionG(zeros, input, arg->pairs);
+        CompressionFunctionG(zeros, input, arg->pairs);         // Run G(0,G(0,Input));
         CompressionFunctionG(zeros, arg->pairs, arg->pairs);
 
-        arg->i++;
-        arg->counter = 0;
+        arg->i++;                                               // Increase counter of applications
+        arg->counter = 0;                                       // Restore counter of used blocks
 }
 
 uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* B, uint64_t J){
@@ -123,11 +122,10 @@ uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* 
         pair[0] = (uint32_t)J;
         pair[1] = (uint32_t)(J >> 32);
 
-
         l = pair[1] % B->p;
 
                                                                                 // Compute R, set of referenceable blocks 
-        if(arg->r == 1){                                                        // First step
+        if(arg->r == 0){                                                        // First step
 
                 if(arg->s == 0)                                                 // First slice
                         referenceable_blocks = arg->c - 1;                      //   All computed blocks until now
@@ -168,16 +166,16 @@ uint64_t Argon2_indexing_mapping(Argon2_indexing_arguments* arg, Argon2_matrix* 
 
 }
 
-uint64_t Argon2_indexing(Argon2_indexing_arguments* arg, Argon2_matrix* B){
-
-        if(arg->x == 1){
-                if(arg->counter == 128 || arg->counter == 0)
+uint64_t Argon2_indexing(Argon2_indexing_arguments* arg, Argon2_matrix* B){                             // If type is Argon2i or Argon2id and
+                                                                                                        // we are in pas 0, slices 0,1, then
+        if(arg->x == 1 || ((arg->x == 2) && (arg->r == 0) && (arg->s < 2))){                            // use data independent addressing
+                if(arg->counter == 128 || arg->counter == 0)                                            // generate values if necessary
                         Argon2i_generate_values(arg);
                 arg->counter++;
-                return Argon2_indexing_mapping( arg, B, arg->pairs[arg->counter-1]);
+                return Argon2_indexing_mapping( arg, B, arg->pairs[arg->counter-1]);                    // map indeces
         }
-        else
-                return Argon2_indexing_mapping( arg, B, Argon2d_generate_values(B, arg->l, arg->c));
+        else                                                                                            // Otherwise just use data dependent
+                return Argon2_indexing_mapping( arg, B, Argon2d_generate_values(B, arg->l, arg->c));    // p.r. and map indeces
 
 }
 

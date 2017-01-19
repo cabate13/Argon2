@@ -84,11 +84,14 @@ void ComputeBlock(Argon2_matrix* B, Argon2_indexing_arguments* args){
 
 		for(args->l = 0; args->l < B->p; args->l++){					// Cycle over the segments
 
-			if(args->s == 0 && args->r == 1)					// If first slice and first step we have
+			//printf("Doing step: %llu, slice: %llu, lane: %llu\n",args->r,args->s,args->l);
+
+			if(args->s == 0 && args->r == 0)					// If first slice and first step we have
 				args->c = 2;							// already computed first two blocks
 			else
 				args->c = args->s*B->segment_length;				// Set c to the beginning of the segment
-			args->i = 1;								// Set the counter to 1 at the beginning of each
+			args->i = 1;								// Argon2i: set counters for intexing:
+			args->counter = 0;							// i = 1 and reset used pairs counter.
 												// segment
 			for(; args->c < (args->s+1)*B->segment_length; args->c++){		// Cycle over the elements of a segment
 
@@ -151,12 +154,48 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
 	uint8_t H0[64];
 	compute_H0(args,H0);
 
+	/*printf("H0: \n");
+	for(int  i = 0 ; i <8;i++){
+
+		for(int j = 0; j < 8 ; j++)
+			printf("%02X ", H0[8*i+j]);
+		printf("\n");
+	}printf("\n\n");*/
 	// Start blocks computation
 	ComputeFirstBlock01(&B,H0,args->tau,0);
 	ComputeFirstBlock01(&B,H0,args->tau,1);
+	/*
+	Argon2_block tmp_block1;
+	Argon2_block tmp_block2;
+	Argon2_matrix_get_block(0,0,&tmp_block1,&B);
 
-	for(args_i.r = 1; args_i.r <= args_i.t; args_i.r++)
+	for(int i = 0;i < 4; i++)
+		printf("B_0[0][0][%d..%d]: %016llX ",16*i,16*(i+1)-1,*((uint64_t*)(tmp_block1.content)+i));
+	printf("\n\n");*/
+
+	for(args_i.r = 0; args_i.r < args_i.t; args_i.r++){
 		ComputeBlock(&B, &args_i);
+		/*
+		if(args_i.r != 0){
+			printf("Got block: [0][0]\n");
+			Argon2_matrix_get_block(0,0,&tmp_block1,&B);
+			for(int i = 0;i < 4; i++)
+				printf("B_%llu[0][0][%d..%d]: %016llX ", args_i.r,16*i,16*(i+1)-1,*((uint64_t*)(tmp_block1.content)+i));
+			printf("\n\n");
+		}else{
+			printf("Got block: [0][3]\n");
+			Argon2_matrix_get_block(0,3,&tmp_block1,&B);
+			for(int i = 0;i < 4; i++)
+				printf("B_%llu[0][3][%d..%d]: %016llX ", args_i.r,16*i,16*(i+1)-1,*((uint64_t*)(tmp_block1.content)+i));
+			printf("\n\n");
+		}
+		if(!Argon2_matrix_get_block(B.p-1,B.q-1,&tmp_block2,&B)){
+			printf("Got block: [%u][%u]\n", B.p-1,B.q-1);
+		}
+		for(int i = 0;i < 4; i++)
+			printf("B_%llu[3][%u][%d..%d]: %016llX ", args_i.r,B.q-1,16*i,16*(i+1)-1,*((uint64_t*)(tmp_block2.content)+i));
+		printf("\n\n");*/
+	}
 	
 	Argon2_block B_final;
 	memset(B_final.content,0,1024);

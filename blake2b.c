@@ -17,7 +17,7 @@
 #include <string.h>
 #include "blake2b.h"
 
-// Constant definition
+// Constants definition
 
 #define ww 64       // Bits in word
 #define r 12        // Rounds in F
