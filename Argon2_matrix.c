@@ -75,23 +75,23 @@ void Argon2i_generate_values(Argon2_global_workspace* gl_arg, Argon2_local_works
         uint64_t zeros[128];
         uint64_t input[128];
 
-        memset(zeros,0,128*sizeof(uint64_t));                   // Build auxiliary input [0...0]
-                                                                // Build input [r||l||s||m||t||x||i||0..0]
-        input[0] = gl_arg->r;                                   // r: pass
-        input[1] = lo_arg->l;                                   // l: lane
-        input[2] = gl_arg->s;                                   // s: slice
-        input[3] = gl_arg->m;                                   // m: total memory
-        input[4] = gl_arg->t;                                   // t: total number f passes
-        input[5] = gl_arg->x;                                   // x: Argon2 type number
-        input[6] = lo_arg->i;                                   // i: counter of generate_values applications
+        memset(zeros,0,128*sizeof(uint64_t));           // Build auxiliary input [0...0]
+                                                        // Build input [r||l||s||m||t||x||i||0..0]
+        input[0] = gl_arg->r;                           // r: pass
+        input[1] = lo_arg->l;                           // l: lane
+        input[2] = gl_arg->s;                           // s: slice
+        input[3] = gl_arg->m;                           // m: total memory
+        input[4] = gl_arg->t;                           // t: total number f passes
+        input[5] = gl_arg->x;                           // x: Argon2 type number
+        input[6] = lo_arg->i;                           // i: counter of generate_values applications
 
-        memset(input+7, 0, 121*sizeof(uint64_t));               // Remaining 968 positions are 0x00
+        memset(input+7, 0, 121*sizeof(uint64_t));       // Remaining 968 positions are 0x00
 
-        A2_G(zeros, input, lo_arg->pairs);                      // Run G(0,G(0,Input));
+        A2_G(zeros, input, lo_arg->pairs);              // Run G(0,G(0,Input));
         A2_G(zeros, lo_arg->pairs, lo_arg->pairs);
 
-        lo_arg->i++;                                            // Increase counter of applications
-        lo_arg->counter = 0;                                    // Restore counter of used blocks
+        lo_arg->i++;                                    // Increase counter of applications
+        lo_arg->counter = 0;                            // Restore counter of used blocks
 }
 
 uint64_t Argon2_indexing_mapping(Argon2_local_workspace* arg, Argon2_global_workspace* B, uint64_t J){
