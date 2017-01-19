@@ -35,7 +35,7 @@ void compute_H0(Argon2_arguments* args, uint8_t* H0){
 //tau is the 32 bit tag length
 //ZeroOne is to discriminate among B[][0] and B[][1]
 //p is a parameter coming from Haven
-void compute_first_block(Argon2_global_workspace* B, uint8_t* H0, uint32_t tau, uint32_t c){
+void ComputeFirstBlock01(Argon2_matrix* B, uint8_t* H0, uint32_t tau, uint32_t c){
 	
 	uint8_t* H_prime_input;
 	Argon2_block block;
@@ -61,7 +61,7 @@ void compute_first_block(Argon2_global_workspace* B, uint8_t* H0, uint32_t tau, 
 
 }
 
-void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
+void ComputeBlock(Argon2_matrix* B, Argon2_indexing_arguments* args){
 
 	uint64_t i_prime;
 	uint64_t j_prime;
@@ -69,66 +69,54 @@ void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 	Argon2_block indexed_block;
 	Argon2_block Bij;
 
-	for(; args->c < (B->s+1)*B->segment_length; args->c++){			// Cycle over the elements of a segment
+	for(args->s = 0; args->s < 4; args->s++){						// Cycle over the slices [sync points]
 
-		i_prime = Argon2_indexing(B, args);				// Compute block B[l][c]
-		j_prime = i_prime & 0x00000000FFFFFFFF;
-		i_prime = i_prime >> 32;
+		for(args->l = 0; args->l < B->p; args->l++){					// Cycle over the segments
 
-		if(Argon2_matrix_get_block(args->l,args->c-1 + 			// Get block B[l][c-1 mod B->q]
-					   ((args->c == 0) ? B->q : 0), 
-					   &block, B))	
-			ERROR("A2B:: Unable to get block [l,c-1]");
-		if(Argon2_matrix_get_block(i_prime,j_prime, &indexed_block, B))	// Get block B[i'][j']
-			ERROR("A2B:: Unable to get block [i',j']");
-		A2_G((uint64_t*)(block.content), 				// Compute G(B[l][c-1], B[i'][j'])
-		     (uint64_t*)(indexed_block.content), 
-		     (uint64_t*)(Bij.content)); 
-		if(Argon2_matrix_get_block(args->l,args->c, &block, B))		// Get block B[l][c]
-			ERROR("A2B:: Unable to get block [l,c]");
-		XOR_128((uint64_t*)Bij.content,					// Compute B[l][c] XOR G(B[l][c-1], B[i'][j'])
-			(uint64_t*)block.content,
-			(uint64_t*)Bij.content);			
-		if(Argon2_matrix_fill_block(args->l,args->c,B,&Bij)) 		// Fill the correct block
-			ERROR("A2B:: Unable to write block");
+			if(args->s == 0 && args->r == 0)					// If first slice and first step we have
+				args->c = 2;							// already computed first two blocks
+			else
+				args->c = args->s*B->segment_length;				// Set c to the beginning of the segment
+			args->i = 1;								// Argon2i: set counters for intexing:
+			args->counter = 0;							// i = 1 and reset used pairs counter.
+												// segment
+			for(; args->c < (args->s+1)*B->segment_length; args->c++){		// Cycle over the elements of a segment
 
-	}
+				i_prime = Argon2_indexing(args, B);				// Compute block B[l][c]
+				j_prime = i_prime & 0x00000000FFFFFFFF;
+				i_prime = i_prime >> 32;
 
-}
+				if(Argon2_matrix_get_block(args->l,args->c-1 + 			// Get block B[l][c-1 mod B->q]
+							   ((args->c == 0) ? B->q : 0), 
+							   &block, B))	
+					ERROR("A2B:: Unable to get block [l,c-1]");
+				if(Argon2_matrix_get_block(i_prime,j_prime, &indexed_block, B))	// Get block B[i'][j']
+					ERROR("A2B:: Unable to get block [i',j']");
+				A2_G((uint64_t*)(block.content), 				// Compute G(B[l][c-1], B[i'][j'])
+				     (uint64_t*)(indexed_block.content), 
+				     (uint64_t*)(Bij.content)); 
+				if(Argon2_matrix_get_block(args->l,args->c, &block, B))		// Get block B[l][c]
+					ERROR("A2B:: Unable to get block [l,c]");
+				XOR_128((uint64_t*)Bij.content,					// Compute B[l][c] XOR G(B[l][c-1], B[i'][j'])
+					(uint64_t*)block.content,
+					(uint64_t*)Bij.content);			
+				if(Argon2_matrix_fill_block(args->l,args->c,B,&Bij)) 		// Fill the correct block
+					ERROR("A2B:: Unable to write block");
 
-void perform_step(Argon2_global_workspace* B){
-
-
-	for(B->s = 0; B->s < 4; B->s++){							// Cycle over the slices [sync points]
-
-		#pragma parallel for
-		for(uint32_t l = 0; l < B->p; l++){						// Cycle over the segments of a slice
-
-			Argon2_local_workspace args;						// Initialize local workspace
-			args.l = l;								// Set lane index
-			if(B->s == 0 && B->r == 0)						// If first slice and first step we have
-				args.c = 2;							// already computed first two blocks
-			else 									// otherwise
-				args.c = B->s*B->segment_length;				// Set c to the beginning of the segment
-			args.i = 1;								// Argon2i: set counters for intexing:
-			args.counter = 0;							// i = 1 and reset used pairs counter.
-
-			compute_segment(B,&args);						// Compute the new value for the blocks 
-												// int the segment
+			}
 		}
-
-	}
-
+	}	
 }
 	
 /*
 * Function to get th final block, remember to initialize Bfinal.content to the vector of all zeros
 */
-void finalize(Argon2_global_workspace* B, Argon2_block* Bfinal){
+void BFinal(Argon2_matrix* B, Argon2_block* Bfinal){
 
 	Argon2_block block;
 
-	for (uint32_t i = 0; i < B->p; ++i){
+	for (uint32_t i = 0; i < B->p; ++i)
+	{
 
 		if(Argon2_matrix_get_block(i, B->q-1, &block,B))
 			ERROR("A2B:: Unable to get final blocks");
@@ -140,10 +128,14 @@ void finalize(Argon2_global_workspace* B, Argon2_block* Bfinal){
 
 void Argon2(Argon2_arguments* args, uint8_t* tag){
 
-	Argon2_global_workspace B;
+	Argon2_matrix B;
 
-	if(Argon2_global_workspace_init(args->m, args->p, args->t, args->y, &B))
+	if(Argon2_matrix_init(args->m, args->p, &B))
 		ERROR("A2B:: Illegal pair of parameters (m,p)");
+
+	// Initialize indexing arguments
+	Argon2_indexing_arguments args_i;
+        Argon2_indexing_arguments_init(&args_i, B.m, args->t, args->y);
 
 	// Compute H0
 	uint8_t H0[64];
@@ -157,8 +149,8 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
 		printf("\n");
 	}printf("\n\n");*/
 	// Start blocks computation
-	compute_first_block(&B,H0,args->tau,0);
-	compute_first_block(&B,H0,args->tau,1);
+	ComputeFirstBlock01(&B,H0,args->tau,0);
+	ComputeFirstBlock01(&B,H0,args->tau,1);
 	/*
 	Argon2_block tmp_block1;
 	Argon2_block tmp_block2;
@@ -168,8 +160,8 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
 		printf("B_0[0][0][%d..%d]: %016llX ",16*i,16*(i+1)-1,*((uint64_t*)(tmp_block1.content)+i));
 	printf("\n\n");*/
 
-	for(B.r = 0; B.r < B.t; B.r++){
-		perform_step(&B);
+	for(args_i.r = 0; args_i.r < args_i.t; args_i.r++){
+		ComputeBlock(&B, &args_i);
 		/*
 		if(args_i.r != 0){
 			printf("Got block: [0][0]\n");
@@ -194,11 +186,11 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
 	
 	Argon2_block B_final;
 	memset(B_final.content,0,1024);
-	finalize(&B, &B_final);
+	BFinal(&B, &B_final);
 	H_prime(B_final.content, 1024, args->tau, tag);
 
 	// free memory
-	Argon2_global_workspace_free(&B);
+	Argon2_matrix_free(&B);
 
 }
 
