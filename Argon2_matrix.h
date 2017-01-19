@@ -55,10 +55,10 @@ int Argon2_matrix_fill_block(uint32_t i, uint32_t j, Argon2_global_workspace* ds
 // Gets the block in position (i,j) in the Argon2 matrix B, storing the content in the dst block
 int Argon2_matrix_get_block(uint32_t i, uint32_t j, Argon2_block* dst, Argon2_global_workspace* src);
 
-// Safely free memory allocated for the matrix
-void Argon2_matrix_free(Argon2_global_workspace* B);
-
 // Indexing function
 uint64_t Argon2_indexing(Argon2_global_workspace* B, Argon2_local_workspace* arg);
+
+// Safely free memory allocated for the matrix
+void Argon2_global_workspace_free(Argon2_global_workspace* B);
 
 #endif
