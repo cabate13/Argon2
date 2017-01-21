@@ -23,7 +23,8 @@ int main(){
         memset(K,0x03,8);
         uint8_t X[12];
         memset(X,0x04,12);
-        uint8_t tag[32];
+        uint8_t* tag = (uint8_t*) malloc(32);
+        memset(tag,0,32);
 
         args.P = P;
         args.size_P = 32;
