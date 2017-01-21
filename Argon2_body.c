@@ -145,9 +145,18 @@ void finalize(Argon2_global_workspace* B, Argon2_block* Bfinal){
 
 void Argon2(Argon2_arguments* args, uint8_t* tag){
 
+
+
 	Argon2_global_workspace B;
 	if(Argon2_global_workspace_init(args->m, args->p, args->t, args->y, &B) == 1)
 		ERROR("A2B:: Unable to initialize global workspace.");
+
+	if(args->size_S<8 || args->p > 0xFFFFFF || args->tau<4 )
+                ERROR("A2B:: Parameters out of bounds");
+        if(args->m < args->p*8)
+                ERROR("A2B:: Pair (m,p) not consistent, 8*p < m.")
+        if(!((args->y == 0) || (args->y == 1) || (args->y == 2))) // When argon2ds is implemented, add args->y == 4
+                ERROR("A2B:: Illegal type for Argon2, Valid types:\nArgon2d:  0\nArgon2i:  1\nArgon2id: 2\n");
 
 	// Compute H0
 	uint8_t H0[64];
@@ -167,8 +176,7 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
 	H_prime(B_final.content, 1024, args->tau, tag);
 
 	//free memory
-	Argon2_global_workspace_free(&B);
-	
+	Argon2_global_workspace_free(&B);	
 
 }
 

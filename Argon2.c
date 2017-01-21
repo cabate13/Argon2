@@ -11,13 +11,10 @@
 #define MALFORMATED_INPUT 2
 #define MISSING_PARAMETER 3
 #define NON_VALID_INPUT_FILE 4
-#define GENERATE_TEMPLATE 5
+#define MALFORMATED_INPUT_FILE 5
+#define GENERATE_TEMPLATE 6
+#define UNABLE_TO_WRITE_TEMPLATE 7
 #define SUCCESS 0
-
-// definitions for input consistency
-#define PARAMETER_OUT_OF_BOUNDS 1
-#define ILLEGAL_PAIR_P_M 2
-#define ILLEGAL_TYPE 3
 
 // Show purposes
 #define PRINT_ARG_S {printf("Password: ");for(int i = 0;i<args.size_P;i++)printf("%c",args.P[i]);printf("\n");\
@@ -30,6 +27,8 @@
 
 const char* man = 
 "*** Argon2 usage: ***\n\nInput from command line: [-K is the only optional argument]\n  ./Argon2 --C \n  -P <password>\n  -S <salt>\n  -X <associated data>\n  -p <parallelization degree>\n  -m <memory usage>\n  -t <total passes>\n  -v <type of Argon2>\n  -l <tag size>\n  [-K <secret size>]\n\nInput mode from file: [generate a template with ./Argon2 --T]\n  ./Argon2 --F <filename>\n\n";
+const char* template = 
+"# This is a template for the Argon2 input file. Lines starting with # will be ignored\nP_size: <password size>\nP: <password>\nS_size: <size of salt>\nS: <salt>\nK_size: <size of secret data>\nK: <secret data>\nX_size: <size of associated data>\nX: <associated data>\np: <degree of parallelization>\nm: <total memory usage in KiB>\nt: <total passes>\nv: <type of Argon2>\ntau: <tag size>";
 
 /* *** Input sanitization ***
  * - Required input:
@@ -169,39 +168,140 @@ int sanitize_input(int argc, char* argv[], Argon2_arguments* args){
 
                 // Check if all arguments have been given:
                 for(int i = 0; i < 11; i++){
-
                         if(!check_input_received[i])
                                 return MISSING_PARAMETER;
 
                 }
-                if(!check_input_received[11] && !check_input_received[12]){
-
-                        args->K = NULL;
+                if(!check_input_received[11] && !check_input_received[12])
                         args->size_K = 0;
 
+        }break; 
+        case 'F':{
+
+                FILE* input_file;
+                input_file = fopen(argv[2],"r");
+                if(input_file == NULL)
+                        return NON_VALID_INPUT_FILE;
+
+                char buffer[1024];
+                char* data_buffer;
+                while(fgets(buffer,sizeof(buffer),input_file) != NULL){
+
+                        if(buffer[strlen(buffer)-1]!='\n')
+                                return MALFORMATED_INPUT_FILE;
+
+                        switch(buffer[0]){
+                                case '#': 
+                                        break;
+                                case 'P':{
+                                        if((sscanf(buffer,"P_size: %u",&(args->size_P))!=1) || check_input_received[0])
+                                                return MALFORMATED_INPUT_FILE; 
+                                        data_buffer = (uint8_t*)malloc(args->size_P+5); // One for the '\n' and one '\0'
+
+                                        if((fgets(data_buffer,args->size_P+5,input_file) == NULL) || (data_buffer[args->size_P+3] != '\n'))
+                                                return MALFORMATED_INPUT_FILE;
+                                        args->P = (uint8_t*)malloc(args->size_P);  // to free in the end!
+                                        memcpy(args->P,data_buffer+3,args->size_P);
+                                        check_input_received[0] =1;
+                                        check_input_received[1] =1;
+                                        free(data_buffer);
+                                }break;
+                                case 'S':{
+                                        if((sscanf(buffer,"S_size: %u",&(args->size_S))!=1) || check_input_received[2])
+                                                return MALFORMATED_INPUT_FILE; 
+                                        data_buffer = (uint8_t*)malloc(args->size_S+5); // One for the '\n' and one '\0'
+
+                                        if((fgets(data_buffer,args->size_S+5,input_file) == NULL) || (data_buffer[args->size_S+3] != '\n'))
+                                                return MALFORMATED_INPUT_FILE;
+                                        args->S = (uint8_t*)malloc(args->size_S);  // to free in the end!
+                                        memcpy(args->S,data_buffer+3,args->size_S);
+                                        check_input_received[2] =1;
+                                        check_input_received[3] =1;
+                                        free(data_buffer);
+                                }break;
+                                case 'K':{
+                                        if((sscanf(buffer,"K_size: %u",&(args->size_K))!=1)|| check_input_received[11])
+                                                return MALFORMATED_INPUT_FILE; 
+                                        data_buffer = (uint8_t*)malloc(args->size_K+5); // One for the '\n' and one '\0' and three for K: 
+
+                                        if((fgets(data_buffer,args->size_K+5,input_file) == NULL) || (data_buffer[args->size_K+3] != '\n'))
+                                                return MALFORMATED_INPUT_FILE;
+                                        args->K = (uint8_t*)malloc(args->size_K);  // to free in the end!
+                                        memcpy(args->K,data_buffer+3,args->size_K);
+                                        check_input_received[11] =1;
+                                        check_input_received[12] =1;
+                                        free(data_buffer);
+                                }break;
+                                case 'X':{
+                                        if((sscanf(buffer,"X_size: %u",&(args->size_X))!=1)|| check_input_received[4])
+                                                return MALFORMATED_INPUT_FILE; 
+                                        data_buffer = (uint8_t*)malloc(args->size_X+5); // One for the '\n' and one '\0'
+
+                                        if((fgets(data_buffer,args->size_X+5,input_file) == NULL) || (data_buffer[args->size_X+3] != '\n'))
+                                                return MALFORMATED_INPUT_FILE;
+                                        args->X = (uint8_t*)malloc(args->size_X);
+                                        memcpy(args->X,data_buffer+3,args->size_X);
+                                        check_input_received[4] =1;
+                                        check_input_received[5] =1;
+                                        free(data_buffer);
+
+                                }break;
+                                case 'p':{
+                                        if((sscanf(buffer, "p: %u",&args->p) != 1)|| check_input_received[6])
+                                                return MALFORMATED_INPUT_FILE;
+                                        check_input_received[6] =1;
+                                }break;
+                                case 'm':{
+                                        if((sscanf(buffer, "m: %u",&args->m) != 1)|| check_input_received[7])
+                                                return MALFORMATED_INPUT_FILE;
+                                        check_input_received[7] =1;
+                                }break;
+                                case 't':{
+                                        if((sscanf(buffer, "t: %u",&args->t) != 1)|| check_input_received[8]){
+                                                if((sscanf(buffer, "tau: %u",&args->tau) != 1)|| check_input_received[10])
+                                                        return MALFORMATED_INPUT_FILE;
+                                                check_input_received[10] =1;
+                                                
+                                        }else
+                                                check_input_received[8] =1;
+                                }break;
+                                case 'v':{
+                                        if((sscanf(buffer, "v: %u",&args->y) != 1)|| check_input_received[9])
+                                                return MALFORMATED_INPUT_FILE;
+                                        check_input_received[9] =1;
+                                }break;
+
+                        }                        
+                        
+
                 }
 
+                for(int i = 0; i < 11; i++){
 
+                        if(!check_input_received[i]){
+                                if(check_input_received[1])
+                                        free(args->P);
+                                if(check_input_received[3])
+                                        free(args->S);
+                                if(check_input_received[5])
+                                        free(args->X);
+                                if(check_input_received[12])
+                                        free(args->K);
+                                return MISSING_PARAMETER;
+                        }
+
+                }
+                if(!check_input_received[11] && !check_input_received[12])
+                        args->size_K = 0;
 
         }break; 
-        case 'F':
-                {
-
-                        FILE* input_file;
-                        input_file = fopen(argv[2],"r");
-                        if(input_file == NULL)
-                                return NON_VALID_INPUT_FILE;
-
-                        printf("Read from file, TBI\n");
-                        exit(0);
-
-                }
-                break; 
-        case 'T':
-                {
-                printf("Not implemented yet.\n");
+        case 'T':{
+                FILE* template_file = fopen("Argon2_template.txt","w");
+                if(template_file == NULL)
+                        return UNABLE_TO_WRITE_TEMPLATE;
+                fprintf(template_file,"%s",template);
                 return GENERATE_TEMPLATE;
-                }break;
+        }break;
         default:
                 return MALFORMATED_INPUT;
                 break;
@@ -209,17 +309,6 @@ int sanitize_input(int argc, char* argv[], Argon2_arguments* args){
                 
         return SUCCESS;
 
-}
-
-int check_consistency(Argon2_arguments* args){
-
-        if(args->size_S<8 || args->p > 0xFFFFFF || args->tau<4 )
-                return PARAMETER_OUT_OF_BOUNDS;
-        if(args->m < args->p*8)
-                return ILLEGAL_PAIR_P_M;
-        if(!((args->y == 0) || (args->y == 1) || (args->y == 2))) // When argon2ds is implemented, add args->y == 4
-                return ILLEGAL_TYPE;
-        return SUCCESS;
 }
 
 /*
@@ -337,42 +426,38 @@ int main(int argc, char* argv[]){
                         case NON_VALID_INPUT_FILE:
                                 printf("Error: Input file %s not found.\n", argv[2]);
                                 break;
-
                         case GENERATE_TEMPLATE:
                                 return 0;
                                 break;
-                        case SUCCESS:{
-
-                                int consistency = check_consistency(&args);
-                                sanitization+=consistency;
-                                switch(consistency){
-
-                                        case PARAMETER_OUT_OF_BOUNDS:
-                                                printf("Error: parameters out of bounds.\n");
-                                                break;
-                                        case ILLEGAL_PAIR_P_M:
-                                                printf("Error: Illegal pair (p,m). It must be 8*p < m < 2^32.\n");
-                                                break;
-                                        case ILLEGAL_TYPE:
-                                                printf("Error: Undefined type for Argon2. Valid types:\nArgon2d:  0\nArgon2i:  1\nArgon2id: 2\n");
-                                                break;
-                                        case SUCCESS:{
-
-                                                uint8_t* tag;
-                                                tag = (uint8_t*)malloc(args.tau);
-                                                Argon2(&args,tag);
-                                                printf("Tag: 0x");
-                                                for(int  i = 0;i<args.tau;i++)
-                                                        printf("%02X",tag[i]);
-                                                printf("\n");
-
-                                                }
-                                                break;
-                                }
+                        case UNABLE_TO_WRITE_TEMPLATE:
+                                printf("Unable to write template, check to have writing rights.\n");
+                                break;
+                        case MALFORMATED_INPUT_FILE:
+                                printf("Malformated configuration file.\n");
+                                break; 
+                        case SUCCESS:{    
+                                PRINT_ARG_S;                           
+                                uint8_t* tag;
+                                tag = (uint8_t*)malloc(args.tau);
+                                Argon2(&args,tag);
+                                printf("Tag: 0x");
+                                for(int  i = 0;i<args.tau;i++)
+                                        printf("%02X",tag[i]);
+                                printf("\n");
+                                // Free memory
+                                if(args.size_P)
+                                        free(args.P);
+                                if(args.size_K)
+                                        free(args.K);
+                                if(args.size_S)
+                                        free(args.S);
+                                if(args.size_X)
+                                        free(args.X);
 
                         }
-                }
 
+                }
+                
                 return (sanitization!= 0);
         }
 
