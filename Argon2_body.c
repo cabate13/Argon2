@@ -146,9 +146,8 @@ void finalize(Argon2_global_workspace* B, Argon2_block* Bfinal){
 void Argon2(Argon2_arguments* args, uint8_t* tag){
 
 	Argon2_global_workspace B;
-
-	if(Argon2_global_workspace_init(args->m, args->p, args->t, args->y, &B))
-		ERROR("A2B:: Illegal pair of parameters (m,p)");
+	if(Argon2_global_workspace_init(args->m, args->p, args->t, args->y, &B) == 1)
+		ERROR("A2B:: Unable to initialize global workspace.");
 
 	// Compute H0
 	uint8_t H0[64];
@@ -160,6 +159,7 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
 
 	for(B.r = 0; B.r < B.t; B.r++)
 		perform_step(&B);
+
 	
 	Argon2_block B_final;
 	memset(B_final.content,0,1024);
