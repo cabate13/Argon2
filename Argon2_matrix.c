@@ -20,6 +20,10 @@ int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x,
         B->r = 0;
         B->s = 0;
 
+	// S-Box for Argon2ds
+	if(x == 4)
+		B->S = (uint64_t*) malloc(1024*sizeof(uint64_t));
+
         return 0;
 
 }
@@ -51,6 +55,9 @@ void Argon2_global_workspace_free(Argon2_global_workspace* B){
 
         free(B->matrix);
         B->matrix = NULL;
+	
+	if(B->x == 4)
+		free(B->S);
 
 }
 
@@ -87,8 +94,9 @@ void Argon2i_generate_values(Argon2_global_workspace* gl_arg, Argon2_local_works
 
         memset(input+7, 0, 121*sizeof(uint64_t));       // Remaining 968 positions are 0x00
 
-        A2_G(zeros, input, lo_arg->pairs);              // Run G(0,G(0,Input));
-        A2_G(zeros, lo_arg->pairs, lo_arg->pairs);
+        A2_G(zeros, input, lo_arg->pairs, gl_arg);              // Run G(0,G(0,Input));
+        A2_G(zeros, lo_arg->pairs, lo_arg->pairs, gl_arg);
+
 
         lo_arg->i++;                                    // Increase counter of applications
         lo_arg->counter = 0;                            // Restore counter of used blocks
