@@ -1,4 +1,4 @@
-#include "blake2b.h"
+#include "Blake2b.h"
 
 // Test main
 

@@ -3,7 +3,7 @@
 
 #include "Argon2_body.h"
 
-#define TEST 0
+#define TEST 1
 #define TEST_FOR_MEMORY_LEAKS 0
 
 // definitions for input sanitizations
@@ -403,6 +403,25 @@ int main(int argc, char* argv[]){
                         printf("tag: ");
                         for(int i = 0;i < args.tau; i++)
                                 printf("%02X ", tag[i]);
+                        printf("\n\n===============================\n\n");
+
+			/*
+                        Argon2ds test --- version 1.3
+
+                        Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
+                        Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
+                        Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
+                        Secret[8]: 03 03 03 03 03 03 03 03 
+                        Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04        
+                        */
+
+                        args.y = 4;
+
+                        Argon2(&args, tag);
+                        printf("Argon2ds test: \n");
+                        printf("tag: ");
+                        for(int i = 0;i < args.tau; i++)
+                                printf("%02X ", tag[i]);
                         printf("\n\n");
 
                 }
@@ -444,15 +463,18 @@ int main(int argc, char* argv[]){
                                 for(int  i = 0;i<args.tau;i++)
                                         printf("%02X",tag[i]);
                                 printf("\n");
-                                // Free memory
-                                if(args.size_P)
-                                        free(args.P);
-                                if(args.size_K)
-                                        free(args.K);
-                                if(args.size_S)
-                                        free(args.S);
-                                if(args.size_X)
-                                        free(args.X);
+
+				if(argv[1][2] == 'F'){
+		                        // Free memory
+		                        if(args.size_P)
+		                                free(args.P);
+		                        if(args.size_K)
+		                                free(args.K);
+		                        if(args.size_S)
+		                                free(args.S);
+		                        if(args.size_X)
+		                                free(args.X);
+				}
 
                         }
 
