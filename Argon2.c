@@ -432,12 +432,13 @@ int main(int argc, char* argv[]){
                 
                 int sanitization = sanitize_input(argc,argv,&args);
 
+                
                 switch(sanitization){
                         case NO_INPUT_GIVEN:
                                 printf("%s",man);
                                 break;
                         case MALFORMATED_INPUT:
-                                printf("Error: Malformated input given.\n",man);
+                                printf("Error: Malformated input given.\n");
                                 break;
                         case MISSING_PARAMETER:
                                 printf("Error: Missing parameters.\n"); 
@@ -463,7 +464,7 @@ int main(int argc, char* argv[]){
                                 for(int  i = 0;i<args.tau;i++)
                                         printf("%02X",tag[i]);
                                 printf("\n");
-
+	
 				if(argv[1][2] == 'F'){
 		                        // Free memory
 		                        if(args.size_P)

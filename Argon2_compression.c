@@ -1,4 +1,5 @@
 #include "Argon2_compression.h"
+#include "Argon2ds.h"
 
 void XOR_128(uint64_t* X, uint64_t* Y, uint64_t* res){
 
@@ -46,7 +47,7 @@ void P(uint64_t* S){
  * two arrays of 1024 bytes and compresses them into one array
  * of 1024 bytes.
  */
-void A2_G(uint64_t* X, uint64_t* Y, uint64_t* result){
+void A2_G(uint64_t* X, uint64_t* Y, uint64_t* result, Argon2_global_workspace* B){
 
     uint64_t R[128];                        // XOR of the two input arrays to compute
     XOR_128(X,Y,R);                         // the working matrix R, which is seen as a 
@@ -74,6 +75,11 @@ void A2_G(uint64_t* X, uint64_t* Y, uint64_t* result){
     		Q[16*j+1+2*i] = column[2*j+1];
     	}
 
+    }
+
+    if(B->x == 4)
+    {
+        A2ds_Compression(R, Q, B->S);
     }
 
    	XOR_128(Q,R,result);                     // Performs the final XOR

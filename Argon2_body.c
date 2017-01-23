@@ -1,4 +1,5 @@
 #include "Argon2_body.h"
+#include "Argon2ds.h"
 
 #if !defined CAT_N
 #define CAT_N(array,pointer,n) {memcpy(array,pointer,n); array+=n;}
@@ -83,9 +84,12 @@ void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 		if(Argon2_matrix_get_block(i_prime,j_prime, &indexed_block, B))	// Get block B[i'][j']
 			ERROR("A2B:: Unable to get block [i',j']");
 
+		
 		A2_G((uint64_t*)(block.content), 				// Compute G(B[l][c-1], B[i'][j'])
 		     (uint64_t*)(indexed_block.content), 
-		     (uint64_t*)(Bij.content)); 
+		     (uint64_t*)(Bij.content),
+		     B); 
+		
 
 		if(Argon2_matrix_get_block(args->l,args->c, &block, B))		// Get block B[l][c]
 			ERROR("A2B:: Unable to get block [l,c]");
@@ -103,6 +107,12 @@ void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 
 void perform_step(Argon2_global_workspace* B){
 
+	if(B->x == 4)
+	{
+		Argon2_block tmp;
+		Argon2_matrix_get_block(0,0,&tmp,B);
+		S_Box_Inizialization(tmp.content,B->S);
+	}
 
 	for(B->s = 0; B->s < 4; B->s++){							// Cycle over the slices [sync points]
 
@@ -155,8 +165,8 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
                 ERROR("A2B:: Parameters out of bounds");
         if(args->m < args->p*8)
                 ERROR("A2B:: Pair (m,p) not consistent, 8*p < m.")
-        if(!((args->y == 0) || (args->y == 1) || (args->y == 2))) // When argon2ds is implemented, add args->y == 4
-                ERROR("A2B:: Illegal type for Argon2, Valid types:\nArgon2d:  0\nArgon2i:  1\nArgon2id: 2\n");
+        if(!((args->y == 0) || (args->y == 1) || (args->y == 2) || (args->y == 4))) // When argon2ds is implemented, add args->y == 4
+                ERROR("A2B:: Illegal type for Argon2, Valid types:\nArgon2d:  0\nArgon2i:  1\nArgon2id: 2\nArgon2ds: 4\n");
 
 	// Compute H0
 	uint8_t H0[64];

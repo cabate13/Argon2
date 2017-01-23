@@ -1,15 +1,16 @@
 # Compile libraries
 
 gcc -o Blake2b.o -c Blake2b.c 
-gcc -o Argon2_compression.o -c Argon2_compression.c 
+gcc -o Argon2_compression.o -c Argon2_compression.c
+gcc -o Argon2ds.o -c Argon2ds.c 
 gcc -o Argon2_matrix.o -c Argon2_matrix.c 
 gcc -o Argon2_body.o -c Argon2_body.c -fopenmp
 # Compile executables and link libraries
 
-gcc blake2btest.c Blake2b.o -o blake2btest 
-gcc Argon2_compression_test.c Blake2b.o Argon2_compression.o -o Argon2_compression_test
-gcc Argon2_matrix_test.c Blake2b.o Argon2_compression.o Argon2_matrix.o -o Argon2_matrix_test
-gcc Argon2.c Blake2b.o Argon2_compression.o Argon2_matrix.o Argon2_body.o -o Argon2 -fopenmp
+#gcc blake2btest.c Blake2b.o -o blake2btest 
+#gcc Argon2_compression_test.c Blake2b.o Argon2_compression.o -o Argon2_compression_test
+#gcc Argon2_matrix_test.c Blake2b.o Argon2_compression.o Argon2_matrix.o Argon2ds.o -o Argon2_matrix_test
+gcc Argon2.c Blake2b.o Argon2_compression.o Argon2_matrix.o Argon2_body.o Argon2ds.o -o Argon2 -fopenmp
 
 # Clean leftovers
 
