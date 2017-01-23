@@ -5,22 +5,25 @@
 //      
 //      Credits to:  Jean-Philippe Aumasson, Samuel Neves, Zooko Wilcox-O'Hearn, and Christian Winnerlein
 //
-//  Notation and function names are used accordingly to this independent IETF submission:
-//  https://tools.ietf.org/html/rfc7693
-//
-//  Credits to: M-J. Saarinen, Ed.
-//
+
 
 #include <stdio.h>
+#include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 #if !defined BLAKE2B
-
 #define BLAKE2B
 
 // Blake2b hash function function
-void blake2b( void* digest, size_t nn, void* data, size_t ll);
+void blake2b( uint8_t* digest, size_t digest_size, uint8_t* data, uint64_t data_size);
 
+#endif
+
+// Utility functions used troughout the whole executable
+#if !defined ERROR
+#define ERROR(msg) {puts((char*)msg); exit(1);}
+#endif
+#if !defined ROT_SHIFT
+#define ROT_SHIFT(array,offset) (((array) >> (offset)) ^ ((array) << (64 - (offset))))
 #endif
