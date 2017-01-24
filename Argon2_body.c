@@ -1,9 +1,22 @@
+// Argon2 v1.3 : PHC release
+//
+//      C implementation of the Argon2 memory hard function for password hashing and others applications
+//
+//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
+//
+
 #include "Argon2_body.h"
 
+/*
+ * Concatenation of N bytes to the array. Also handles the update of the pointer to the tail of the array
+ */
 #if !defined CAT_N
 #define CAT_N(array,pointer,n) {memcpy(array,pointer,n); array+=n;}
 #endif
 
+/*
+ * Computes the seed for the initialization of the first two columns in the first step of Argon2
+ */
 void compute_H0(Argon2_arguments* args, uint8_t* H0){
 
 	uint8_t* H0_input = (uint8_t*)malloc(10*4+args->size_P+args->size_S+args->size_K+args->size_X);
@@ -31,10 +44,9 @@ void compute_H0(Argon2_arguments* args, uint8_t* H0){
 }
 
 
-//function computing a block  
-//tau is the 32 bit tag length
-//ZeroOne is to discriminate among B[][0] and B[][1]
-//p is a parameter coming from Haven
+/*
+ * Initialization of the first two columns [c = 0,1] of the matrix, using the seed H0
+ */
 void compute_first_block(Argon2_global_workspace* B, uint8_t* H0, uint32_t tau, uint32_t c){
 	
 	uint8_t* H_prime_input;
@@ -58,6 +70,9 @@ void compute_first_block(Argon2_global_workspace* B, uint8_t* H0, uint32_t tau, 
 
 }
 
+/*
+ * Computes all the blocks in a segment
+ */
 void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 
 	uint64_t i_prime;
@@ -91,6 +106,9 @@ void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 
 }
 
+/*
+ * Initializes arguments and handles parallel computation in an Argon2 step.
+ */
 void perform_step(Argon2_global_workspace* B){
 
 	if(B->x == A2DS)
@@ -123,7 +141,7 @@ void perform_step(Argon2_global_workspace* B){
 }
 	
 /*
-* Function to get the final block, remember to initialize Bfinal.content to the vector of all zeros
+* Function to get the final block. Remark: B_final needs to be whitened
 */
 void finalize(Argon2_global_workspace* B, uint64_t* B_final){
 

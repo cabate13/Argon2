@@ -1,0 +1,16 @@
+# Compile libraries
+
+gcc -o blake2b.o -c blake2b.c -ggdb 
+gcc -o Argon2_compression.o -c Argon2_compression.c -ggdb
+gcc -o Argon2_matrix.o -c Argon2_matrix.c -ggdb
+gcc -o Argon2_body.o -c Argon2_body.c -ggdb
+# Compile executables and link libraries
+
+gcc blake2btest.c blake2b.o -o blake2btest 
+gcc Argon2_compression_test.c blake2b.o Argon2_compression.o -o Argon2_compression_test
+gcc Argon2_matrix_test.c blake2b.o Argon2_compression.o Argon2_matrix.o -o Argon2_matrix_test
+gcc Argon2.c blake2b.o Argon2_compression.o Argon2_matrix.o Argon2_body.o -o Argon2-gdb -ggdb
+
+# Clean leftovers
+
+rm *.o >> /dev/null

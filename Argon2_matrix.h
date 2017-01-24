@@ -1,11 +1,21 @@
+// Argon2 v1.3 : PHC release
+//
+//      C implementation of the Argon2 memory hard function for password hashing and others applications
+//
+//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
+//
+
 #if !defined A2_MATRIX
+
 #define A2_MATRIX
-
-#include "Argon2_compression.h"
-
 #define A2_MATRIX_BLOCK_LENGTH 1024
 #define A2I_PAIRS_NUMBER 128
 
+#include "Argon2_compression.h"
+
+/*
+ * Global workspace, fixed for all the parallel threads. Contains all the shared data between independent segment computation
+ */
 typedef struct{
 
         uint64_t* matrix;
@@ -29,7 +39,9 @@ typedef struct{
 
 }Argon2_global_workspace;
 
-// arguments for the data-independent indexing function
+/*
+ * Local workspace, one for each independent thread. Contains specific data for each thread, during the segment computation
+ */
 typedef struct{
 
         // lane number
@@ -45,16 +57,24 @@ typedef struct{
 
 }Argon2_local_workspace;
 
-// Initializes the matrix and sets global parameters
+/*
+ * Initializes the global workspace, allocating space for the matrix and setting parameters according to Argon2 input
+ */
 int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x, Argon2_global_workspace* B);
 
-// Gets the block in position (i,j) in the Argon2 matrix B, storing the content in the dst block
+/*
+ * Gets the block in position (i,j) in the Argon2 matrix B, storing a pointer to it in dst
+ */
 int Argon2_matrix_get_block(uint32_t i, uint32_t j, uint64_t** dst, Argon2_global_workspace* src);
 
-// Indexing function
+/*
+ * Indexing function, computes (i',j'), given the current position
+ */
 uint64_t Argon2_indexing(Argon2_global_workspace* B, Argon2_local_workspace* arg);
 
-// Safely free memory allocated for the matrix
+/*
+ * Safely deallocates memory used in the global workspace
+ */
 void Argon2_global_workspace_free(Argon2_global_workspace* B);
 
 #endif
