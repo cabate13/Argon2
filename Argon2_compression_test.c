@@ -52,6 +52,45 @@ int main(void)
         for(int i = 1;i<1025;i++)
         H_prime((uint8_t*)H_prime_input, 72, i, digest1);
 
+        // Test for vitto
+
+        uint8_t input[32];
+        memset(input, 0x01,32);
+        uint8_t tag[1024];
+        H_prime(input,32,1024,tag); 
+
+        printf("Tag: ");
+        for(int i = 0;i<1024;i++)
+            printf("%02X ",tag[i]);
+        printf("\n");
+
+        uint8_t * b1 = (uint8_t *)malloc(1024);
+        uint8_t * b2 = (uint8_t *)malloc(1024);
+
+        for (int i=0; i<1024; i++)
+            b1[i] = i & 0xFF;
+
+        for (int i=0; i<1024; i++)
+            b2[i] = (1023-i) & 0xFF;
+
+        printf("b1: ");
+        for(int i = 0; i < 1024; i++)
+            printf("%02x ", (uint8_t)b1[i]);
+        printf("\n");
+        printf("b2: ");
+        for(int i = 0; i < 1024; i++)
+            printf("%02x ", (uint8_t)b2[i]);
+        printf("\n");
+
+    
+        A2_G((uint64_t*)b1,(uint64_t*)b2,(uint64_t*)result);
+
+        
+        printf("Compress: ");
+        for(int i = 0; i < 1024; i++)
+            printf("%02x ", (uint8_t)(((uint8_t*)result)[i]));
+        printf("\n");
+
         return 0;
 }
 
