@@ -153,7 +153,7 @@ int main(){
                      printf("Associated data: ");for(int i = 0;i<args.size_X;i++)printf("%c",args.X[i]);printf("\n");\
                      printf("tau: %u, p: %u, m: %u, t: %u, y: %u\n",args.tau, args.p, args.m, args.t, args.y);}
 const char* man = 
-"*** Argon2 usage: ***\n\nInput from command line: [-K is the only optional argument]\n  ./Argon2 --C \n  -P <password>\n  -S <salt>\n  -X <associated data>\n  -p <parallelization degree>\n  -m <memory usage>\n  -t <total passes>\n  -v <type of Argon2>\n  -l <tag size>\n  [-K <secret size>]\n\nInput mode from file: [generate a template with ./Argon2 --T]\n  ./Argon2 --F <filename> -P <password> -X <associated data>\n\n";
+"*** Argon2 usage: ***\n\nInput from command line: [-K is the only optional argument]\n  ./Argon2 --C \n  -P <password>\n  -S <salt>\n  -X <associated data>\n  -p <parallelization degree>\n  -m <memory usage>\n  -t <total passes>\n  -v <type of Argon2>\n  -l <tag size>\n  [-K <secret>]\n\nInput from file: [generate a template with ./Argon2 --T]\n  ./Argon2 --F <filename> -P <password> -X <associated data>\n\n";
 const char* template = 
 "# This is a template for the Argon2 input file. Lines starting with # will be ignored\nS_size: <size of salt>\nS: <salt>\nK_size: <size of secret data>\nK: <secret data>\np: <degree of parallelization>\nm: <total memory usage in KiB>\nt: <total passes>\nv: <type of Argon2>\ntau: <tag size>";
 
@@ -421,7 +421,7 @@ int main(int argc, char* argv[]){
                         printf("%s",man);
                         break;
                 case MALFORMED_INPUT:
-                        printf("Error: Malformed input given.\n",man);
+                        printf("Error: Malformed input given.\n");
                         break;
                 case MISSING_PARAMETER:
                         printf("Error: Missing parameters.\n"); 
