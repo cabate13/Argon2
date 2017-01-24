@@ -1,17 +1,46 @@
-# Compile libraries
+debug = 0
+genkat = 0
+follow-specifications = 0
+CFLAGS += -fopenmp
+CC = gcc
+UNAME_S := $(shell uname -s)
 
-gcc -o Blake2b.o -c Blake2b.c 
-gcc -o Argon2_compression.o -c Argon2_compression.c
-gcc -o Argon2ds.o -c Argon2ds.c 
-gcc -o Argon2_matrix.o -c Argon2_matrix.c 
-gcc -o Argon2_body.o -c Argon2_body.c -fopenmp
-# Compile executables and link libraries
+# Handle debug version
+ifeq ($(debug), 1)
+	CFLAGS += -ggdb
+endif
+# Handle OS compilation [use gcc-6 from homebrew]
+ifeq ($(UNAME_S),Darwin)
+	CC=gcc-6 
+endif
+# Handle genkat tests
+ifneq ($(genkat),0)
+	CFLAGS += -DTEST
+endif
+# Handle specification v.s. phc-implementation discrepancies
+ifneq ($(follow-specifications),0)
+	CFLAGS += -DFOLLOW_SPECS
+endif
 
-#gcc blake2btest.c Blake2b.o -o blake2btest 
-#gcc Argon2_compression_test.c Blake2b.o Argon2_compression.o -o Argon2_compression_test
-#gcc Argon2_matrix_test.c Blake2b.o Argon2_compression.o Argon2_matrix.o Argon2ds.o -o Argon2_matrix_test
-gcc Argon2.c Blake2b.o Argon2_compression.o Argon2_matrix.o Argon2_body.o Argon2ds.o -o Argon2 -fopenmp
+Argon2: Blake2b.o Argon2_compression.o Argon2_matrix.o Argon2_body.o
+	$(CC) $@.c $? -o $@ $(CFLAGS) 
 
-# Clean leftovers
+Blake2b:
+	$(CC) -o $@.o -c $@.c $(CFLAGS)
 
-rm *.o >> /dev/null
+Argon2_compression: 
+	$(CC) -o $@.o .c $@.c $(CFLAGS)
+
+Argon2_matrix: 
+	$(CC) -o $@.o -c $@.c $(CFLAGS)
+
+Argon2_body: 
+	$(CC) -o $@.o -c $@.c $(CFLAGS)
+
+.PHONY : clean purge
+clean:
+	-rm *.o
+	-rm -rf *.dSYM
+purge: clean
+	-rm Argon2
+

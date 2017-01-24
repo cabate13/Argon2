@@ -1,17 +1,14 @@
-#include "Argon2_compression.h"
-
 #if !defined A2_MATRIX
 #define A2_MATRIX
 
+#include "Argon2_compression.h"
+
+#define A2_MATRIX_BLOCK_LENGTH 1024
+#define A2I_PAIRS_NUMBER 128
+
 typedef struct{
 
-        uint8_t content[1024];
-
-}Argon2_block;
-
-typedef struct{
-
-        uint8_t* matrix;
+        uint64_t* matrix;
         // degree of parallelism
         uint32_t p;
         // number of columns in the matrix
@@ -42,7 +39,7 @@ typedef struct{
         // counter [reset for every segment]
         uint64_t i;
         // place to save the 128 pairs in argon2i
-        uint64_t pairs[128];
+        uint64_t pairs[A2I_PAIRS_NUMBER];
         // used pairs counter
         uint64_t counter;
 
@@ -51,11 +48,8 @@ typedef struct{
 // Initializes the matrix and sets global parameters
 int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x, Argon2_global_workspace* B);
 
-// Fills the block in position (i,j) in the Argon2 matrix B with the content of the source block
-int Argon2_matrix_fill_block(uint32_t i, uint32_t j, Argon2_global_workspace* dst, Argon2_block* src);
-
 // Gets the block in position (i,j) in the Argon2 matrix B, storing the content in the dst block
-int Argon2_matrix_get_block(uint32_t i, uint32_t j, Argon2_block* dst, Argon2_global_workspace* src);
+int Argon2_matrix_get_block(uint32_t i, uint32_t j, uint64_t** dst, Argon2_global_workspace* src);
 
 // Indexing function
 uint64_t Argon2_indexing(Argon2_global_workspace* B, Argon2_local_workspace* arg);

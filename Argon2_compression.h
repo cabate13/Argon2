@@ -3,12 +3,22 @@
 #define A2_COMPRESSION
 
 #include "Blake2b.h"
-#include "Argon2_matrix.h"
+
+#define A2D 0
+#define A2I 1
+#define A2ID 2
+#define A2DS 4
 
 /*
-* New version of a compression function working with uint64_t
+ * Takes the block of position (0,0) and initializes the S-Box S for Argon2ds
+ */
+void S_Box_Inizialization(uint64_t* block_00, uint64_t* S);
+
+/*
+* Argon2 compression function, takes two blocks X and Y and compresses the into one block stored in result
+* The last two arguments are the S-Box to be used in Argon2ds [type == 4]
 */
-void A2_G(uint64_t* X, uint64_t* Y, uint64_t* result, Argon2_global_workspace* B);
+void A2_G(const uint64_t* X, const uint64_t* Y, uint64_t* result, uint64_t* S, uint8_t type);
 
 /*
 * Multi-length hash function, based on Blake2b, tau is the lenght of the digest
@@ -18,7 +28,7 @@ void H_prime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest);
 /*
 * utility function it performs the XOR coordinatewise between two arrays
 */
-void XOR_128(uint64_t* X, uint64_t* Y, uint64_t* res);
+void XOR_128(const uint64_t* X, const uint64_t* Y, uint64_t* res);
 
 #endif
 

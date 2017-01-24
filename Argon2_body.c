@@ -1,5 +1,4 @@
 #include "Argon2_body.h"
-#include "Argon2ds.h"
 
 #if !defined CAT_N
 #define CAT_N(array,pointer,n) {memcpy(array,pointer,n); array+=n;}
@@ -25,7 +24,7 @@ void compute_H0(Argon2_arguments* args, uint8_t* H0){
 	CAT_N(H0_input_curr,&(args->size_X),4);
 	CAT_N(H0_input_curr,args->X,args->size_X);
 
-	blake2b((void*)H0, 64, (void*)H0_input,  H0_input_curr - H0_input);
+	blake2b((void*)H0, H0_LENGTH, (void*)H0_input,  H0_input_curr - H0_input);
 
 	free(H0_input);
 
@@ -39,22 +38,19 @@ void compute_H0(Argon2_arguments* args, uint8_t* H0){
 void compute_first_block(Argon2_global_workspace* B, uint8_t* H0, uint32_t tau, uint32_t c){
 	
 	uint8_t* H_prime_input;
-	Argon2_block block;
+	uint64_t* block;
 
-	memset(block.content,0,1024);
+	H_prime_input = (uint8_t*) malloc(H0_LENGTH+8); 
+	memcpy(H_prime_input, H0, H0_LENGTH); //copy H0 into H_prime_input
+	memcpy(H_prime_input+H0_LENGTH, &c, 4);
 
-	H_prime_input = (uint8_t*) malloc(72); // 64 for H0 + 4 + 4
-	memcpy(H_prime_input, H0, 64); //copy H0 into H_prime_input
-	memcpy(H_prime_input+64, &c, 4);
+	for(uint32_t i=0; i< B->p; i++){
 
-	for(uint32_t i=0; i< B->p; i++)
-	{
+		if(Argon2_matrix_get_block(i,c,&block,B))
+			ERROR("A2B:: Invalid index in first blocks computation");
 
-		memcpy(H_prime_input+68, &i, 4);
-		H_prime(H_prime_input, 72, 1024, block.content);
-
-		if(Argon2_matrix_fill_block(i,c,B,&block))
-			ERROR("A2B:: Unable to write block01");	
+		memcpy(H_prime_input+H0_LENGTH+4, &i, 4);
+		H_prime(H_prime_input, H0_LENGTH+8, A2_MATRIX_BLOCK_LENGTH, (uint8_t*)block);
 
 	}
 
@@ -66,40 +62,30 @@ void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 
 	uint64_t i_prime;
 	uint64_t j_prime;
-	Argon2_block block;
-	Argon2_block indexed_block;
-	Argon2_block Bij;
+	uint64_t* block;
+	uint64_t* indexed_block;
+	uint64_t support[A2_MATRIX_BLOCK_LENGTH];
 
 	for(; args->c < (B->s+1)*B->segment_length; args->c++){			// Cycle over the elements of a segment
 
-		i_prime = Argon2_indexing(B, args);				// Compute block B[l][c]
-		j_prime = i_prime & 0x00000000FFFFFFFF;
+		i_prime = Argon2_indexing(B, args);				// Compute block B[l][c]:
+		j_prime = i_prime & 0x00000000FFFFFFFF;				//   Find i',j'
 		i_prime = i_prime >> 32;
 
-		if(Argon2_matrix_get_block(args->l,args->c-1 + 			// Get block B[l][c-1 mod B->q]
+		if(Argon2_matrix_get_block(args->l,args->c-1 + 			//   Get block B[l][c-1 mod B->q]
 					   ((args->c == 0) ? B->q : 0), 
 					   &block, B))	
 			ERROR("A2B:: Unable to get block [l,c-1]");
 
-		if(Argon2_matrix_get_block(i_prime,j_prime, &indexed_block, B))	// Get block B[i'][j']
+		if(Argon2_matrix_get_block(i_prime,j_prime, &indexed_block, B))	//   Get block B[i'][j']
 			ERROR("A2B:: Unable to get block [i',j']");
-
 		
-		A2_G((uint64_t*)(block.content), 				// Compute G(B[l][c-1], B[i'][j'])
-		     (uint64_t*)(indexed_block.content), 
-		     (uint64_t*)(Bij.content),
-		     B); 
-		
+		A2_G(block, indexed_block, support, B->S, B->x);		// Compute G(B[l][c-1], B[i'][j'])		
 
 		if(Argon2_matrix_get_block(args->l,args->c, &block, B))		// Get block B[l][c]
 			ERROR("A2B:: Unable to get block [l,c]");
 
-		XOR_128((uint64_t*)Bij.content,					// Compute B[l][c] XOR G(B[l][c-1], B[i'][j'])
-			(uint64_t*)block.content,
-			(uint64_t*)Bij.content);
-
-		if(Argon2_matrix_fill_block(args->l,args->c,B,&Bij)) 		// Fill the correct block
-			ERROR("A2B:: Unable to write block");
+		XOR_128(support, block, block);					// Compute B[l][c] XOR G(B[l][c-1], B[i'][j'])
 
 	}
 
@@ -107,11 +93,11 @@ void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 
 void perform_step(Argon2_global_workspace* B){
 
-	if(B->x == 4)
+	if(B->x == A2DS)
 	{
-		Argon2_block tmp;
-		Argon2_matrix_get_block(0,0,&tmp,B);
-		S_Box_Inizialization(tmp.content,B->S);
+		uint64_t* block;
+		Argon2_matrix_get_block(0,0,&block,B);
+		S_Box_Inizialization(block,B->S);
 	}
 
 	for(B->s = 0; B->s < 4; B->s++){							// Cycle over the slices [sync points]
@@ -137,18 +123,18 @@ void perform_step(Argon2_global_workspace* B){
 }
 	
 /*
-* Function to get th final block, remember to initialize Bfinal.content to the vector of all zeros
+* Function to get the final block, remember to initialize Bfinal.content to the vector of all zeros
 */
-void finalize(Argon2_global_workspace* B, Argon2_block* Bfinal){
+void finalize(Argon2_global_workspace* B, uint64_t* B_final){
 
-	Argon2_block block;
+	uint64_t* block;
 
 	for (uint32_t i = 0; i < B->p; ++i){
 
 		if(Argon2_matrix_get_block(i, B->q-1, &block,B))
 			ERROR("A2B:: Unable to get final blocks");
 
-		XOR_128((uint64_t*)(Bfinal->content), (uint64_t*)(block.content), (uint64_t*)(Bfinal->content));
+		XOR_128(B_final, block, B_final);
 
 	}
 }
@@ -165,7 +151,7 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
                 ERROR("A2B:: Parameters out of bounds");
         if(args->m < args->p*8)
                 ERROR("A2B:: Pair (m,p) not consistent, 8*p < m.")
-        if(!((args->y == 0) || (args->y == 1) || (args->y == 2) || (args->y == 4))) // When argon2ds is implemented, add args->y == 4
+        if(!((args->y == A2D) || (args->y == A2I) || (args->y == A2ID) || (args->y == A2DS))) 
                 ERROR("A2B:: Illegal type for Argon2, Valid types:\nArgon2d:  0\nArgon2i:  1\nArgon2id: 2\nArgon2ds: 4\n");
 
 	// Compute H0
@@ -176,14 +162,18 @@ void Argon2(Argon2_arguments* args, uint8_t* tag){
 	compute_first_block(&B,H0,args->tau,0);
 	compute_first_block(&B,H0,args->tau,1);
 
+	#if defined FOLLOW_SPECS
+	for(B.r = 1; B.r <= B.t; B.r++)
+		perform_step(&B);
+	#else
 	for(B.r = 0; B.r < B.t; B.r++)
 		perform_step(&B);
-
+	#endif
 	
-	Argon2_block B_final;
-	memset(B_final.content,0,1024);
-	finalize(&B, &B_final);
-	H_prime(B_final.content, 1024, args->tau, tag);
+	uint64_t B_final[A2_MATRIX_BLOCK_LENGTH/8];
+	memset(B_final,0,A2_MATRIX_BLOCK_LENGTH);
+	finalize(&B, B_final);
+	H_prime((uint8_t*)B_final, A2_MATRIX_BLOCK_LENGTH, args->tau, tag);
 
 	//free memory
 	Argon2_global_workspace_free(&B);	
