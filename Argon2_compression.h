@@ -1,13 +1,19 @@
+// Argon2 v1.3 : PHC release
+//
+//      C implementation of the Argon2 memory hard function for password hashing and others applications
+//
+//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
+//
+
 #if !defined A2_COMPRESSION
 
 #define A2_COMPRESSION
-
-#include "Blake2b.h"
-
 #define A2D 0
 #define A2I 1
 #define A2ID 2
 #define A2DS 4
+
+#include "Blake2b.h"
 
 /*
  * Takes the block of position (0,0) and initializes the S-Box S for Argon2ds
@@ -32,6 +38,9 @@ void XOR_128(const uint64_t* X, const uint64_t* Y, uint64_t* res);
 
 #endif
 
+/*
+ * Outputs the 32-LSB of an uint64_t
+ */
 #if !defined TRUNC_32
 // Truncation of the 32 lsb of a uint64_t, without changing its type
 #define TRUNC_32(m) (m & 0x00000000FFFFFFFF)

@@ -1,3 +1,10 @@
+// Argon2 v1.3 : PHC release
+//      
+//      C implementation of the Argon2 memory hard function for password hashing and others applications
+//           
+//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
+//
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "Argon2_body.h"
@@ -12,6 +19,17 @@
 #define UNABLE_TO_WRITE_TEMPLATE 7
 #define SUCCESS 0
 
+/*
+ * Test main, runs the four types of argon2 with the following inputs:
+ *
+ * Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
+ * Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
+ * Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
+ * Secret[8]: 03 03 03 03 03 03 03 03 
+ * Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04 
+ * 
+ * and prints the resulting Tag
+ */
 #if defined TEST
 
 int main(){
@@ -23,15 +41,6 @@ int main(){
     uint8_t X[12];
     uint8_t tag[32];
 
-    /*
-    Argon2d test --- version 1.3
-
-    Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
-    Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
-    Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
-    Secret[8]: 03 03 03 03 03 03 03 03 
-    Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04 
-    */
     memset(P,0x01,32);        
     memset(S,0x02,16);
     memset(K,0x03,8);
@@ -58,16 +67,6 @@ int main(){
             printf("%02X ", tag[i]);
     printf("\n\n===============================\n\n");
 
-    /*
-    Argon2i test --- version 1.3
-
-    Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
-    Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
-    Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
-    Secret[8]: 03 03 03 03 03 03 03 03 
-    Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04 
-    */
-
     args.y = 1;
 
     Argon2(&args, tag);
@@ -77,16 +76,6 @@ int main(){
             printf("%02X ", tag[i]);
     printf("\n\n===============================\n\n");
 
-    /*
-    Argon2id test --- version 1.3
-
-    Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
-    Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
-    Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
-    Secret[8]: 03 03 03 03 03 03 03 03 
-    Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04        
-    */
-
     args.y = 2;
 
     Argon2(&args, tag);
@@ -95,16 +84,6 @@ int main(){
     for(int i = 0;i < args.tau; i++)
             printf("%02X ", tag[i]);
     printf("\n\n===============================\n\n");
-
-    /*
-    Argon2ds test --- version 1.3
-
-    Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
-    Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
-    Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
-    Secret[8]: 03 03 03 03 03 03 03 03 
-    Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04        
-    */
 
     args.y = 4;
 
@@ -121,6 +100,53 @@ int main(){
 
 #else
 
+/* 
+ * Actual implementation of Argon2 v1.3, wrapped in a main that handles input and correctly initializes arguments [hopefully]
+ *
+ * - Required input:
+ *  (°) Password P and its size         (check_input_received[0-1])
+ *  (°) Salt S and its size             (check_input_received[2-3])
+ *  (°) Secret K and its size           (check_input_received[11-12])
+ *  (°) Associated data X and its size  (check_input_received[4-5])
+ *  (°) Tag size                        (check_input_received[10])
+ *  (°) Degreee of parallelization      (check_input_received[6])
+ *  (°) Total memory usage              (check_input_received[7])
+ *  (°) Total passes                    (check_input_received[8])               
+ *  (°) type [0,1,2,4]                  (check_input_received[9])
+ *
+ * - Input formats:
+ *  (°) --C : command line input
+ *  (°) --F : config file input -> more realistic use for password hashing, password and associatd data (exa. username, ..) defined at
+ *            runtime, while other parameters are set in the database configuration.
+ *
+ * - Mode 1: command line input:
+ *  (°) --C
+ *  (°) -P <password>
+ *  (°) -S <salt>
+ *  (°) [-K <secret>]
+ *  (°) -X <associated data>
+ *  (°) -p <degree of parallelization>
+ *  (°) -m <total memory usage in KiB>
+ *  (°) -t <total passes>
+ *  (°) -v <type of Argon2>
+ *  (°) -l <tag size>
+ *
+ * - Mode 2: config file input:
+ *  (°) --F <filename> -P <password> -X <associated data>
+ *  
+ * - File format:
+ *  (°) S_size: <size of salt>
+ *  (°) S: <salt>
+ *  (°) K_size: <size of secret data>  // optional
+ *  (°) K: <secret data>               // optional
+ *  (°) p: <degree of parallelization>
+ *  (°) m: <total memory usage in KiB>
+ *  (°) t: <total passes>
+ *  (°) v: <type of Argon2>
+ *  (°) tau: <tag size>
+ */
+
+// Prints the arguments passed to Argon2
 #define PRINT_ARG_S {printf("Password: ");for(int i = 0;i<args.size_P;i++)printf("%c",args.P[i]);printf("\n");\
                      printf("Salt: ");for(int i = 0;i<args.size_S;i++)printf("%c",args.S[i]);printf("\n");\
                      printf("Secret: ");for(int i = 0;i<args.size_K;i++)printf("%c",args.K[i]);printf("\n");\
@@ -137,32 +163,33 @@ int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint
         // Gets password and associated data from command line
         int i = 3;
         while(i<argc-1){
-            if((strlen(argv[i])!=2) || (argv[i][0]!='-'))
+                if((strlen(argv[i])!=2) || (argv[i][0]!='-'))
                         return MALFORMED_INPUT;
 
-            switch(argv[i][1]){
-            case 'P':{
-                    if(check_input_received[0])
-                            return MALFORMED_INPUT;
-                    args->P = argv[i+1];
-                    args->size_P = strlen(argv[i+1]);
-                    check_input_received[0] = 1;
-                    check_input_received[1] = 1;
-            }break;
-            case 'X':{
-                    if(check_input_received[4])
-                            return MALFORMED_INPUT;
-                    args->X = argv[i+1];
-                    args->size_X = strlen(argv[i+1]);
-                    check_input_received[4] = 1;
-                    check_input_received[5] = 1;
-            }break;
-            default:
-                    return MALFORMED_INPUT;
-                    break;
+                switch(argv[i][1]){
+                        case 'P':{
+                                if(check_input_received[0])
+                                        return MALFORMED_INPUT;
+                                args->P = argv[i+1];
+                                args->size_P = strlen(argv[i+1]);
+                                check_input_received[0] = 1;
+                                check_input_received[1] = 1;
+                        }break;
+                        case 'X':{
+                                if(check_input_received[4])
+                                        return MALFORMED_INPUT;
+                                args->X = argv[i+1];
+                                args->size_X = strlen(argv[i+1]);
+                                check_input_received[4] = 1;
+                                check_input_received[5] = 1;
+                        }break;
+                        default:
+                                return MALFORMED_INPUT;
+                                break;
 
-            }
-            i+=2;
+                }
+                i+=2;
+
         }
 
         // Gets remaining arguments from input file
@@ -235,7 +262,6 @@ int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint
 
                 }                        
                 
-
         }
 
         for(int i = 0; i < 11; i++){
@@ -249,6 +275,7 @@ int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint
                 }
 
         }
+
         if(!check_input_received[11] && !check_input_received[12])
                 args->size_K = 0;
 
@@ -266,66 +293,66 @@ int command_line_input_sanitization(int argc, char* argv[], Argon2_arguments* ar
                         return MALFORMED_INPUT;
 
                 switch(argv[i][1]){
-                case 'P':{
-                        if(check_input_received[0])
+                        case 'P':{
+                                if(check_input_received[0])
+                                        return MALFORMED_INPUT;
+                                args->P = argv[i+1];
+                                args->size_P = strlen(argv[i+1]);
+                                check_input_received[0] = 1;
+                                check_input_received[1] = 1;
+                        }break;
+                        case 'S':{
+                                if(check_input_received[2])
+                                        return MALFORMED_INPUT;                                
+                                args->S = argv[i+1];
+                                args->size_S = strlen(argv[i+1]);
+                                check_input_received[2] = 1;
+                                check_input_received[3] = 1;
+                        }break;
+                        case 'K':{
+                                if(check_input_received[11])
+                                        return MALFORMED_INPUT;
+                                args->K = argv[i+1];
+                                args->size_K = strlen(argv[i+1]);
+                                check_input_received[11] = 1;
+                                check_input_received[12] = 1;
+                        }break;
+                        case 'X':{
+                                if(check_input_received[4])
+                                        return MALFORMED_INPUT;
+                                args->X = argv[i+1];
+                                args->size_X = strlen(argv[i+1]);
+                                check_input_received[4] = 1;
+                                check_input_received[5] = 1;
+                        }break;
+                        case 'p':{
+                                if(sscanf(argv[i+1],"%u",&(args->p))!=1 || check_input_received[6])
+                                        return MALFORMED_INPUT;
+                                check_input_received[6]=1;
+                        }break;
+                        case 'm':{
+                                if(sscanf(argv[i+1],"%llu",&(args->m))!=1 || check_input_received[7])
+                                        return MALFORMED_INPUT;
+                                check_input_received[7]=1;
+                        }break;
+                        case 't':{
+                                if(sscanf(argv[i+1],"%u",&(args->t))!=1 || check_input_received[8])
+                                        return MALFORMED_INPUT;
+                                check_input_received[8]=1;
+                        }break;
+                        case 'v':{
+                                if(sscanf(argv[i+1],"%u",&(args->y))!=1 || check_input_received[9])
+                                        return MALFORMED_INPUT;
+                                check_input_received[9]=1;
+                        }break;
+                        case 'l':{
+                                if(sscanf(argv[i+1],"%u",&(args->tau))!=1 || check_input_received[10])
+                                        return MALFORMED_INPUT;
+                                check_input_received[10]=1;
+                        }break;
+                        default:
                                 return MALFORMED_INPUT;
-                        args->P = argv[i+1];
-                        args->size_P = strlen(argv[i+1]);
-                        check_input_received[0] = 1;
-                        check_input_received[1] = 1;
-                }break;
-                case 'S':{
-                        if(check_input_received[2])
-                                return MALFORMED_INPUT;                                
-                        args->S = argv[i+1];
-                        args->size_S = strlen(argv[i+1]);
-                        check_input_received[2] = 1;
-                        check_input_received[3] = 1;
-                }break;
-                case 'K':{
-                        if(check_input_received[11])
-                                return MALFORMED_INPUT;
-                        args->K = argv[i+1];
-                        args->size_K = strlen(argv[i+1]);
-                        check_input_received[11] = 1;
-                        check_input_received[12] = 1;
-                }break;
-                case 'X':{
-                        if(check_input_received[4])
-                                return MALFORMED_INPUT;
-                        args->X = argv[i+1];
-                        args->size_X = strlen(argv[i+1]);
-                        check_input_received[4] = 1;
-                        check_input_received[5] = 1;
-                }break;
-                case 'p':{
-                        if(sscanf(argv[i+1],"%u",&(args->p))!=1 || check_input_received[6])
-                                return MALFORMED_INPUT;
-                        check_input_received[6]=1;
-                }break;
-                case 'm':{
-                        if(sscanf(argv[i+1],"%llu",&(args->m))!=1 || check_input_received[7])
-                                return MALFORMED_INPUT;
-                        check_input_received[7]=1;
-                }break;
-                case 't':{
-                        if(sscanf(argv[i+1],"%u",&(args->t))!=1 || check_input_received[8])
-                                return MALFORMED_INPUT;
-                        check_input_received[8]=1;
-                }break;
-                case 'v':{
-                        if(sscanf(argv[i+1],"%u",&(args->y))!=1 || check_input_received[9])
-                                return MALFORMED_INPUT;
-                        check_input_received[9]=1;
-                }break;
-                case 'l':{
-                        if(sscanf(argv[i+1],"%u",&(args->tau))!=1 || check_input_received[10])
-                                return MALFORMED_INPUT;
-                        check_input_received[10]=1;
-                }break;
-                default:
-                        return MALFORMED_INPUT;
-                        break;
+                                break;
 
                 }
                 i+=2;
@@ -337,6 +364,7 @@ int command_line_input_sanitization(int argc, char* argv[], Argon2_arguments* ar
                         return MISSING_PARAMETER;
 
         }
+
         if(!check_input_received[11] && !check_input_received[12])
                 args->size_K = 0;
 
@@ -344,51 +372,7 @@ int command_line_input_sanitization(int argc, char* argv[], Argon2_arguments* ar
 
 }
 
-/* *** Input sanitization ***
- * - Required input:
- *  (°) Password P and its size         (check_input_received[0-1])
- *  (°) Salt S and its size             (check_input_received[2-3])
- *  (°) Secret K and its size           (check_input_received[11-12])
- *  (°) Associated data X and its size  (check_input_received[4-5])
- *  (°) Tag size                        (check_input_received[10])
- *  (°) Degreee of parallelization      (check_input_received[6])
- *  (°) Total memory usage              (check_input_received[7])
- *  (°) Total passes                    (check_input_received[8])
- *  (°) version byte (?)                
- *  (°) type [0,1,2,4]                  (check_input_received[9])
- *
- * - Input formats:
- *  (°) --C : command line input
- *  (°) --F : config file input -> more realistic use for password hashing, password and associatd data (exa. username, ..) defined at
- *            runtime, while other parameters are set in the database configuration.
- *
- * - Mode 1: command line input:
- *  (°) --C
- *  (°) -P <password>
- *  (°) -S <salt>
- *  (°) [-K <secret>]
- *  (°) -X <associated data>
- *  (°) -p <degree of parallelization>
- *  (°) -m <total memory usage in KiB>
- *  (°) -t <total passes>
- *  (°) -v <type of Argon2>
- *  (°) -l <tag size>
- *
- * - Mode 2: config file input:
- *  (°) --F <filename> -P <password> -X <associated data>
- *  
- * - File format:
- *  (°) S_size: <size of salt>
- *  (°) S: <salt>
- *  (°) K_size: <size of secret data>  // optional
- *  (°) K: <secret data>               // optional
- *  (°) p: <degree of parallelization>
- *  (°) m: <total memory usage in KiB>
- *  (°) t: <total passes>
- *  (°) v: <type of Argon2>
- *  (°) tau: <tag size>
- */
-
+// Checks the type of input provided (command line v.s. file) and calls the appropriate handler
 int sanitize_input(int argc, char* argv[], Argon2_arguments* args){
 
         // Check for the received arguments: order defined above
@@ -429,11 +413,9 @@ int sanitize_input(int argc, char* argv[], Argon2_arguments* args){
 
 int main(int argc, char* argv[]){
 
-        Argon2_arguments args;
-        
+        Argon2_arguments args;        
         int sanitization = sanitize_input(argc,argv,&args);
-
-        
+       
         switch(sanitization){
                 case NO_INPUT_GIVEN:
                         printf("%s",man);
@@ -467,14 +449,13 @@ int main(int argc, char* argv[]){
                         printf("\n");
 
                         // Free memory if input is read from file
-        				if(argv[1][2] == 'F'){
-        		                        // Free memory
-        		                        if(args.size_K)
-        		                                free(args.K);
-        		                        if(args.size_S)
-        		                                free(args.S);
-        				}
-
+			if(argv[1][2] == 'F'){
+	                        // Free memory
+	                        if(args.size_K)
+	                                free(args.K);
+	                        if(args.size_S)
+	                                free(args.S);
+			}
 
                 }
 

@@ -1,12 +1,20 @@
-#include "Argon2_matrix.h"
-#include <omp.h>
+// Argon2 v1.3 : PHC release
+//
+//      C implementation of the Argon2 memory hard function for password hashing and others applications
+//
+//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
+//
 
 #if !defined A2_BODY
 
 #define A2_BODY
-
 #define H0_LENGTH 64
 
+#include "Argon2_matrix.h"
+
+/*
+ * Contains the parameters necessary for Argon2
+ */
 typedef struct{
 
         // Message P and its size = [0 .. 2^32-1]
@@ -36,6 +44,9 @@ typedef struct{
 
 }Argon2_arguments;
 
+/*
+ * Argon2 main function, initializes the global environment, performs computations and stores the output in tag 
+ */
 void Argon2(Argon2_arguments* args, uint8_t* tag);
 
 #endif

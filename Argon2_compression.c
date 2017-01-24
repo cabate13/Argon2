@@ -1,3 +1,10 @@
+// Argon2 v1.3 : PHC release
+//
+//      C implementation of the Argon2 memory hard function for password hashing and others applications
+//
+//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
+//
+
 #include "Argon2_compression.h"
 
 void XOR_128(const uint64_t* X, const uint64_t* Y, uint64_t* res){
@@ -41,7 +48,9 @@ void P(uint64_t* S){
 
 }
 
-// Round function for the S-Box initialization Argon2ds
+/*
+ * Round function for the S-Box initialization Argon2ds
+ */
 #define A2DS_F {for (int k = 0; k < 8; ++k) P(block_00+16*k);}
 
 void S_Box_Inizialization(uint64_t* block_00, uint64_t* S){
@@ -52,9 +61,11 @@ void S_Box_Inizialization(uint64_t* block_00, uint64_t* S){
         A2DS_F;
         memcpy(S+128*i, block_00, 128*sizeof(uint64_t)); 
     }
-}
 
-// Scrambles W using the S-Box S
+}
+/*
+ * Scrambles W using the S-Box S
+ */
 uint64_t Tau(uint64_t W, uint64_t* S){
 
     uint64_t y;
@@ -71,10 +82,10 @@ uint64_t Tau(uint64_t W, uint64_t* S){
 
     return W;
 }
-
-// Further scrambling using the S-Box, takes R and Z as described in A2_G
-void A2DS_compression(uint64_t* R, uint64_t* Z, uint64_t* S)
-{
+/*
+ * Further scrambling using the S-Box, takes R and Z as described in A2_G
+ */
+void A2DS_compression(uint64_t* R, uint64_t* Z, uint64_t* S){
 
     uint64_t W;
     W = R[0] ^ R[127]; 
@@ -98,7 +109,6 @@ void A2_G(const uint64_t* X, const uint64_t* Y, uint64_t* result, uint64_t* S, u
     uint64_t R[128];                        // XOR of the two input arrays to compute
     XOR_128(X,Y,R);                         // the working matrix R, which is seen as a 
                                             // 8x8 matrix of elements uint64_t[2]
-
     uint64_t Q[128];                        // Stores R in Q for future computation
     memcpy(Q,R,sizeof(R));
 
@@ -108,25 +118,26 @@ void A2_G(const uint64_t* X, const uint64_t* Y, uint64_t* result, uint64_t* S, u
     uint64_t column[16];                    // Applies the permutation P to Q column-wise:
     for (int i = 0; i < 8; ++i){
 
-    	for (int j = 0; j < 8; ++j) 
-    	{                                      
+    	for (int j = 0; j < 8; ++j){
+
     	    column[2*j] = Q[16*j+2*i];      // Computes the i-th column of Q and stores        
     		column[2*j+1] = Q[16*j+1+2*i];  // it in 'column'
+
     	}
 
     	P(column);                           // Applies P 
 
         for (int j=0; j<8; ++j){
+
     		Q[16*j+2*i] = column[2*j];       // Writes the result in the correct position
     		Q[16*j+1+2*i] = column[2*j+1];
+
     	}
 
     }
 
     if(type == A2DS)
-    {
         A2DS_compression(R, Q, S);
-    }
 
    	XOR_128(Q,R,result);                     // Performs the final XOR
 
@@ -135,8 +146,7 @@ void A2_G(const uint64_t* X, const uint64_t* Y, uint64_t* result, uint64_t* S, u
 /*
  * Multi-lenght hash function based on Blake2b. 
  */
-void H_prime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
-{
+void H_prime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest){
 
     // Compute tau || X
     uint8_t* t_cat_X;
@@ -147,8 +157,8 @@ void H_prime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
     if(tau <= 64)
             blake2b(digest,tau,t_cat_X,sizeX+4);            // If tau <= 64, blake2b is enough
 
-    else                                                    // Otherwise, we use repeated evaluations of Blake2b
-    {
+    else{                                                   // Otherwise, we use repeated evaluations of Blake2b
+
             uint32_t r = tau/32 + (tau%32 != 0) - 2;        //  Compute the required evaluations
             uint8_t V[64];
 

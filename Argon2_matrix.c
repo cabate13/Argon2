@@ -1,6 +1,15 @@
+// Argon2 v1.3 : PHC release
+//
+//      C implementation of the Argon2 memory hard function for password hashing and others applications
+//
+//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
+//
+
 #include "Argon2_matrix.h"
 
-// Initializes the matrix and sets its parameters
+/*
+* Initializes the matrix and sets its parameters
+*/
 int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x, Argon2_global_workspace* B){
 
         // Matrix initialization
@@ -12,7 +21,7 @@ int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x,
         B->q = B->m/p;
         B->segment_length = B->q/4;
         B->matrix = (uint64_t*)malloc(B->m*1024);
-        memset(B->matrix,0,B->m*1024);
+        memset(B->matrix,0,B->m*A2_MATRIX_BLOCK_LENGTH);
 
         // Global parameters initialization
         B->t = t;
@@ -21,14 +30,16 @@ int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x,
         B->s = 0;
 
 	// S-Box for Argon2ds
-	if(x == 4)
+	if(x == A2DS)
 		B->S = (uint64_t*) malloc(A2_MATRIX_BLOCK_LENGTH*sizeof(uint64_t));
 
         return 0;
 
 }
 
-// Gets the block in position (i,j) in the Argon2 matrix B, returning a pointer to it
+/*
+ * Gets the block in position (i,j) in the Argon2 matrix B, returning a pointer to it
+ */
 int Argon2_matrix_get_block(uint32_t i, uint32_t j, uint64_t** dst, Argon2_global_workspace* src){
 
         if(i > (src->p - 1) || j > (src->q - 1))
@@ -39,18 +50,21 @@ int Argon2_matrix_get_block(uint32_t i, uint32_t j, uint64_t** dst, Argon2_globa
 
 }
 
-// GC: Deallocates memory for the matrix and, if it is the case, also the memory for the S-Box
+/*
+ * Deallocates the memory of the matrix and, if it is the case, also the memory used for the S-Box
+ */
 void Argon2_global_workspace_free(Argon2_global_workspace* B){
 
         free(B->matrix);
         B->matrix = NULL;
 	
-	if(B->x == 4)
+	if(B->x == A2DS)
 		free(B->S);
 
 }
-
-// Generates J1, J2 as specified in Argon2d: data dependent
+/*
+ * Generates J1, J2 as specified in Argon2d: data dependent
+ */
 uint64_t Argon2d_generate_values(Argon2_global_workspace* B, uint32_t i, uint32_t j){
 
         uint64_t* block = 0;
@@ -64,9 +78,9 @@ uint64_t Argon2d_generate_values(Argon2_global_workspace* B, uint32_t i, uint32_
         return J;
 
 }
-
-// Generates 128 pairs (J1,J2) t.b.u. in the data independent indexing function:
-// data independent
+/*
+ * Generates 128 pairs (J1,J2) t.b.u. in the data independent indexing function
+ */
 void Argon2i_generate_values(Argon2_global_workspace* B, Argon2_local_workspace* args){
 
         uint64_t zeros[A2I_PAIRS_NUMBER];
@@ -92,6 +106,9 @@ void Argon2i_generate_values(Argon2_global_workspace* B, Argon2_local_workspace*
 
 }
 
+/*
+ * Maps the values J1, J2 into i',j' t.b.u. in the Argon2 round
+ */
 uint64_t Argon2_indexing_mapping(Argon2_local_workspace* arg, Argon2_global_workspace* B, uint64_t J){
 
         uint64_t l;
@@ -161,6 +178,9 @@ uint64_t Argon2_indexing_mapping(Argon2_local_workspace* arg, Argon2_global_work
 
 }
 
+/*
+ * Calls the functions relative to the indexing procedure, dependig on the type of Argon2
+ */
 uint64_t Argon2_indexing(Argon2_global_workspace* B, Argon2_local_workspace* arg){                      // If type is Argon2i or Argon2id and
                                                                                                         // we are in pas 0, slices 0,1, then
         if(B->x == A2I || ((B->x == A2ID) && (B->r == 0) && (B->s < 2))){                               // use data independent addressing
@@ -173,5 +193,3 @@ uint64_t Argon2_indexing(Argon2_global_workspace* B, Argon2_local_workspace* arg
                 return Argon2_indexing_mapping( arg, B, Argon2d_generate_values(B, arg->l, arg->c));    // p.r. and map indeces
 
 }
-
-
