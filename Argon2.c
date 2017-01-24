@@ -443,6 +443,7 @@ int main(int argc, char* argv[]){
                 
                 int sanitization = sanitize_input(argc,argv,&args);
 
+                
                 switch(sanitization){
                         case NO_INPUT_GIVEN:
                                 printf("%s",man);
@@ -483,6 +484,7 @@ int main(int argc, char* argv[]){
                 		                        if(args.size_S)
                 		                                free(args.S);
                 				}
+
 
                         }
 

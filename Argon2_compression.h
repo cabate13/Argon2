@@ -3,11 +3,12 @@
 #define A2_COMPRESSION
 
 #include "Blake2b.h"
+#include "Argon2_matrix.h"
 
 /*
 * New version of a compression function working with uint64_t
 */
-void A2_G(uint64_t* X, uint64_t* Y, uint64_t* result);
+void A2_G(uint64_t* X, uint64_t* Y, uint64_t* result, Argon2_global_workspace* B);
 
 /*
 * Multi-length hash function, based on Blake2b, tau is the lenght of the digest

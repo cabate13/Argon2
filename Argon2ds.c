@@ -1,121 +1,54 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "Argon2_compression.h"
-#include "Argon2_matrix.h"
-
-
-//è la funzione principale di A2_G (almeno secondo l'interpretazione di Carmine delle specifiche di Argon2ds)
-// semplicemente calcola P(X_0,..X_8),.., P(X_56,..X_63)
-void F(uint64_t* X);
-
-/*
-* Permutazione S (S-box). Definiamo S fornendone la tavola degli output (i.e. l'immagine di S) che è un array uint8_t [1024]
-* prende in input B[0][0].content e S e inizializza S alla S-box richiesta.
-* NOTA: passare una copia di B[0][0].content perchè ne andiamo a modificare il contenuto
-*/
-void S_Box_Inizialization(uint8_t* Block00Content, uint8_t* S);
-
-/*
-* Funzione Tau
-*/
-void Tau(uint8_t* W, uint8_t* S, uint8_t* tauW);
-
-/*
-* Funzione di compressione per Argon2ds
-*/
-void A2ds_Compression(uint64_t* X, uint64_t* Y, uint64_t* result, uint8_t* Block00Content);
-
+#include "Argon2ds.h"
 
 void F(uint64_t* X)
 {
 	for (int i = 0; i < 8; ++i) 
 	{
-		P(X);
+		P(X+16*i);
 	}
 }
 
-void S_Box_Inizialization(uint8_t* Block00Content, uint8_t* S)
+void S_Box_Inizialization(uint8_t* Block00Content, uint64_t* S)
 {
-	for (int i = 0; i < 16 ; ++i)
+	for (int i = 0; i < 8 ; ++i)
 	{
-		F(Block00Content);
-
-		if(i%2) //"after each two iterations we use the entire 1024 byte value and initialize 128 lookupvalues" io l'ho intesa così
-		{
-			memcpy(S+128*(i/2), Block00Content, 128); 
-		}
+		F((uint64_t*)Block00Content);
+        F((uint64_t*)Block00Content);
+		memcpy(S+128*i, Block00Content, 128*sizeof(uint64_t)); 
 	}
 }
 
-void Tau(uint8_t* W, uint8_t* S, uint8_t* tauW)
+uint64_t Tau(uint64_t W, uint64_t* S)
 {
-	memcpy(tauW,W,8);
-
-	uint64_t temp1;
-	uint64_t temp2;
+    uint64_t y;
+    uint64_t z;
 
 	for (int i = 0; i < 96; ++i)
 	{
-		uint8_t y = S[tauW[0]]; //W[0] sono i primi 8 bit di W
-		uint8_t z = S[512 + tauW[4]] //W[4] sono i bit da 32 a 40 di W
+		y = S[W & 0x1FF]; // i primi 9 bit di W
+		z = S[512 + ((W >> 32) & 0x1FF)]; // i bit da 32 a 40 di W
 
-
-		memcpy(temp1, tauW, 4);
-		memcpy(temp2, tauW+4,4);
-
-		*tauW = (temp1 * temp2) + (uint64_t) y;
-
-		*tauW ^= (uint64_t) z; 
+		W = (((W & 0x00000000FFFFFFFF)*(W >> 32)) +  y) ^ z;
 
 	}
 
+    return W;
 }
 
 
-void A2ds_Compression(uint64_t* X, uint64_t* Y, uint64_t* result, uint8_t* Block00Content)
+void A2ds_Compression(uint64_t* R, uint64_t* Z, uint64_t* S)
 {
 
-	uint64_t R[128];                        // XOR of the two input arrays to compute
-    XOR_128(X,Y,R);                         // the working matrix R, which is seen as a 
-                                            // 8x8 matrix of elements uint64_t[2]
-
-    uint64_t Q[128];                        // Stores R in Q for future computation
-    memcpy(Q,R,sizeof(R));
-
-    for (int i = 0; i < 8; ++i)             // Applies the permutation P to Q row-wise
-    	P(Q+16*i);
-
-    uint64_t column[16];                    // Applies the permutation P to Q column-wise:
-    for (int i = 0; i < 8; ++i){
-
-    	for (int j = 0; j < 8; ++j) 
-    	{                                      
-    	    column[2*j] = Q[16*j+2*i];      // Computes the i-th column of Q and stores        
-    		column[2*j+1] = Q[16*j+1+2*i];  // it in 'column'
-    	}
-
-    	P(column);                           // Applies P 
-
-        for (int j=0; j<8; ++j){
-    		Q[16*j+2*i] = column[2*j];       // Writes the result in the correct position
-    		Q[16*j+1+2*i] = column[2*j+1];
-    	}
-
-    //2ds part
-    uint8_t* S = (uint8_t*) calloc(1024,sizeof(uint8_t));
-    S_Box_Inizialization(Block00Content, S);
-
-    uint8_t* W= (uint8_t*) malloc(sizeof(uint8_t)*8);
+    uint64_t W;
     W = R[0] ^ R[127]; 
 
-    Tau(W,S,W);
+    W = Tau(W,S);
 
-    Q[0] += (uint64_t) W;
-    Q[127] += (uint64_t) (W<<32);
+    Z[0] += W;
 
-   	XOR_128(Q,R,result);                     // Performs the final XOR
-
+    Z[126] +=  W;
+    Z[127] += (W<<32);                 
+ 
 }
 
 

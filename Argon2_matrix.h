@@ -27,6 +27,8 @@ typedef struct{
         // type number
         uint64_t x;
         uint32_t segment_length;
+	// S-Box for Argon2ds
+	uint64_t* S;
 
 }Argon2_global_workspace;
 
