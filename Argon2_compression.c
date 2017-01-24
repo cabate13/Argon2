@@ -1,7 +1,6 @@
 #include "Argon2_compression.h"
-#include "Argon2ds.h"
 
-void XOR_128(uint64_t* X, uint64_t* Y, uint64_t* res){
+void XOR_128(const uint64_t* X, const uint64_t* Y, uint64_t* res){
 
     for(int i = 0; i<128; ++i)
         res[i] = X[i]^Y[i];
@@ -42,12 +41,59 @@ void P(uint64_t* S){
 
 }
 
+// Round function for the S-Box initialization Argon2ds
+#define A2DS_F {for (int k = 0; k < 8; ++k) P(block_00+16*k);}
+
+void S_Box_Inizialization(uint64_t* block_00, uint64_t* S){
+
+    for (int i = 0; i < 8 ; ++i)
+    {
+        A2DS_F;
+        A2DS_F;
+        memcpy(S+128*i, block_00, 128*sizeof(uint64_t)); 
+    }
+}
+
+// Scrambles W using the S-Box S
+uint64_t Tau(uint64_t W, uint64_t* S){
+
+    uint64_t y;
+    uint64_t z;
+
+    for (int i = 0; i < 96; ++i)
+    {
+        y = S[W & 0x1FF]; // i primi 9 bit di W
+        z = S[512 + ((W >> 32) & 0x1FF)]; // i bit da 32 a 40 di W
+
+        W = (((W & 0x00000000FFFFFFFF)*(W >> 32)) +  y) ^ z;
+
+    }
+
+    return W;
+}
+
+// Further scrambling using the S-Box, takes R and Z as described in A2_G
+void A2DS_compression(uint64_t* R, uint64_t* Z, uint64_t* S)
+{
+
+    uint64_t W;
+    W = R[0] ^ R[127]; 
+
+    W = Tau(W,S);
+
+    Z[0] += W;
+
+    Z[126] +=  W;
+    Z[127] += (W<<32);                 
+ 
+}
+
 /*
  * Main compression functions of Argon2, takes as input
  * two arrays of 1024 bytes and compresses them into one array
  * of 1024 bytes.
  */
-void A2_G(uint64_t* X, uint64_t* Y, uint64_t* result, Argon2_global_workspace* B){
+void A2_G(const uint64_t* X, const uint64_t* Y, uint64_t* result, uint64_t* S, uint8_t type){
 
     uint64_t R[128];                        // XOR of the two input arrays to compute
     XOR_128(X,Y,R);                         // the working matrix R, which is seen as a 
@@ -77,9 +123,9 @@ void A2_G(uint64_t* X, uint64_t* Y, uint64_t* result, Argon2_global_workspace* B
 
     }
 
-    if(B->x == 4)
+    if(type == A2DS)
     {
-        A2ds_Compression(R, Q, B->S);
+        A2DS_compression(R, Q, S);
     }
 
    	XOR_128(Q,R,result);                     // Performs the final XOR

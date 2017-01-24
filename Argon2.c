@@ -1,10 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "Argon2_body.h"
-
-#define TEST 0
-#define TEST_FOR_MEMORY_LEAKS 0
 
 // definitions for input sanitizations
 #define NO_INPUT_GIVEN 1
@@ -15,6 +11,115 @@
 #define GENERATE_TEMPLATE 6
 #define UNABLE_TO_WRITE_TEMPLATE 7
 #define SUCCESS 0
+
+#if defined TEST
+
+int main(){
+
+    Argon2_arguments args;
+    uint8_t P[32];
+    uint8_t S[16];
+    uint8_t K[8];
+    uint8_t X[12];
+    uint8_t tag[32];
+
+    /*
+    Argon2d test --- version 1.3
+
+    Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
+    Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
+    Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
+    Secret[8]: 03 03 03 03 03 03 03 03 
+    Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04 
+    */
+    memset(P,0x01,32);        
+    memset(S,0x02,16);
+    memset(K,0x03,8);
+    memset(X,0x04,12);
+    args.P = P;
+    args.size_P = 32;
+    args.S = S;
+    args.size_S = 16;
+    args.p = 4;
+    args.tau = 32;
+    args.m = 32; // 32 KiB
+    args.t = 3;
+    args.v = 0x13; 
+    args.size_K = 8;
+    args.K = K;
+    args.X = X;
+    args.size_X = 12;
+    args.y = 0;
+
+    Argon2(&args, tag);
+    printf("Argon2d test: \n");
+    printf("tag: ");
+    for(int i = 0;i < args.tau; i++)
+            printf("%02X ", tag[i]);
+    printf("\n\n===============================\n\n");
+
+    /*
+    Argon2i test --- version 1.3
+
+    Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
+    Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
+    Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
+    Secret[8]: 03 03 03 03 03 03 03 03 
+    Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04 
+    */
+
+    args.y = 1;
+
+    Argon2(&args, tag);
+    printf("Argon2i test: \n");
+    printf("tag: ");
+    for(int i = 0;i < args.tau; i++)
+            printf("%02X ", tag[i]);
+    printf("\n\n===============================\n\n");
+
+    /*
+    Argon2id test --- version 1.3
+
+    Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
+    Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
+    Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
+    Secret[8]: 03 03 03 03 03 03 03 03 
+    Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04        
+    */
+
+    args.y = 2;
+
+    Argon2(&args, tag);
+    printf("Argon2id test: \n");
+    printf("tag: ");
+    for(int i = 0;i < args.tau; i++)
+            printf("%02X ", tag[i]);
+    printf("\n\n===============================\n\n");
+
+    /*
+    Argon2ds test --- version 1.3
+
+    Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
+    Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
+    Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
+    Secret[8]: 03 03 03 03 03 03 03 03 
+    Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04        
+    */
+
+    args.y = 4;
+
+    Argon2(&args, tag);
+    printf("Argon2ds test: \n");
+    printf("tag: ");
+    for(int i = 0;i < args.tau; i++)
+            printf("%02X ", tag[i]);
+    printf("\n\n");
+
+        return 0;
+
+}
+
+#else
 
 #define PRINT_ARG_S {printf("Password: ");for(int i = 0;i<args.size_P;i++)printf("%c",args.P[i]);printf("\n");\
                      printf("Salt: ");for(int i = 0;i<args.size_S;i++)printf("%c",args.S[i]);printf("\n");\
@@ -322,175 +427,61 @@ int sanitize_input(int argc, char* argv[], Argon2_arguments* args){
 
 }
 
-/*
-Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
-Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
-Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
-Secret[8]: 03 03 03 03 03 03 03 03 
-Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04 
-*/
-
 int main(int argc, char* argv[]){
 
-        if(TEST){
+        Argon2_arguments args;
+        
+        int sanitization = sanitize_input(argc,argv,&args);
 
-                for(int i = 0;i<=100*TEST_FOR_MEMORY_LEAKS;i++){
+        
+        switch(sanitization){
+                case NO_INPUT_GIVEN:
+                        printf("%s",man);
+                        break;
+                case MALFORMED_INPUT:
+                        printf("Error: Malformed input given.\n",man);
+                        break;
+                case MISSING_PARAMETER:
+                        printf("Error: Missing parameters.\n"); 
+                        break;
+                case NON_VALID_INPUT_FILE:
+                        printf("Error: Input file %s not found.\n", argv[2]);
+                        break;
+                case GENERATE_TEMPLATE:
+                        return 0;
+                        break;
+                case UNABLE_TO_WRITE_TEMPLATE:
+                        printf("Unable to write template, check to have writing rights.\n");
+                        break;
+                case MALFORMED_INPUT_FILE:
+                        printf("Malformed configuration file.\n");
+                        break; 
+                case SUCCESS:{    
+                        PRINT_ARG_S;                           
+                        uint8_t* tag;
+                        tag = (uint8_t*)malloc(args.tau);
+                        Argon2(&args,tag);
+                        printf("Tag: 0x");
+                        for(int  i = 0;i<args.tau;i++)
+                                printf("%02X",tag[i]);
+                        printf("\n");
 
-                        Argon2_arguments args;
-                        uint8_t P[32];
-                        uint8_t S[16];
-                        uint8_t K[8];
-                        uint8_t X[12];
-                        uint8_t tag[32];
+                        // Free memory if input is read from file
+        				if(argv[1][2] == 'F'){
+        		                        // Free memory
+        		                        if(args.size_K)
+        		                                free(args.K);
+        		                        if(args.size_S)
+        		                                free(args.S);
+        				}
 
-                        /*
-                        Argon2d test --- version 1.3
-
-                        Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
-                        Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
-                        Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
-                        Secret[8]: 03 03 03 03 03 03 03 03 
-                        Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04 
-                        */
-                        memset(P,0x01,32);        
-                        memset(S,0x02,16);
-                        memset(K,0x03,8);
-                        memset(X,0x04,12);
-                        args.P = P;
-                        args.size_P = 32;
-                        args.S = S;
-                        args.size_S = 16;
-                        args.p = 4;
-                        args.tau = 32;
-                        args.m = 32; // 32 KiB
-                        args.t = 3;
-                        args.v = 0x13; 
-                        args.size_K = 8;
-                        args.K = K;
-                        args.X = X;
-                        args.size_X = 12;
-                        args.y = 0;
-
-                        Argon2(&args, tag);
-                        printf("Argon2d test: \n");
-                        printf("tag: ");
-                        for(int i = 0;i < args.tau; i++)
-                                printf("%02X ", tag[i]);
-                        printf("\n\n===============================\n\n");
-
-                        /*
-                        Argon2i test --- version 1.3
-
-                        Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
-                        Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
-                        Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
-                        Secret[8]: 03 03 03 03 03 03 03 03 
-                        Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04 
-                        */
-
-                        args.y = 1;
-
-                        Argon2(&args, tag);
-                        printf("Argon2i test: \n");
-                        printf("tag: ");
-                        for(int i = 0;i < args.tau; i++)
-                                printf("%02X ", tag[i]);
-                        printf("\n\n===============================\n\n");
-
-                        /*
-                        Argon2id test --- version 1.3
-
-                        Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
-                        Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
-                        Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
-                        Secret[8]: 03 03 03 03 03 03 03 03 
-                        Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04        
-                        */
-
-                        args.y = 2;
-
-                        Argon2(&args, tag);
-                        printf("Argon2id test: \n");
-                        printf("tag: ");
-                        for(int i = 0;i < args.tau; i++)
-                                printf("%02X ", tag[i]);
-                        printf("\n\n===============================\n\n");
-
-			/*
-                        Argon2ds test --- version 1.3
-
-                        Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
-                        Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
-                        Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
-                        Secret[8]: 03 03 03 03 03 03 03 03 
-                        Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04        
-                        */
-
-                        args.y = 4;
-
-                        Argon2(&args, tag);
-                        printf("Argon2ds test: \n");
-                        printf("tag: ");
-                        for(int i = 0;i < args.tau; i++)
-                                printf("%02X ", tag[i]);
-                        printf("\n\n");
 
                 }
 
-        }else{
-
-                Argon2_arguments args;
-                
-                int sanitization = sanitize_input(argc,argv,&args);
-
-                
-                switch(sanitization){
-                        case NO_INPUT_GIVEN:
-                                printf("%s",man);
-                                break;
-                        case MALFORMED_INPUT:
-                                printf("Error: Malformed input given.\n",man);
-                                break;
-                        case MISSING_PARAMETER:
-                                printf("Error: Missing parameters.\n"); 
-                                break;
-                        case NON_VALID_INPUT_FILE:
-                                printf("Error: Input file %s not found.\n", argv[2]);
-                                break;
-                        case GENERATE_TEMPLATE:
-                                return 0;
-                                break;
-                        case UNABLE_TO_WRITE_TEMPLATE:
-                                printf("Unable to write template, check to have writing rights.\n");
-                                break;
-                        case MALFORMED_INPUT_FILE:
-                                printf("Malformed configuration file.\n");
-                                break; 
-                        case SUCCESS:{    
-                                PRINT_ARG_S;                           
-                                uint8_t* tag;
-                                tag = (uint8_t*)malloc(args.tau);
-                                Argon2(&args,tag);
-                                printf("Tag: 0x");
-                                for(int  i = 0;i<args.tau;i++)
-                                        printf("%02X",tag[i]);
-                                printf("\n");
-
-                                // Free memory if input is read from file
-                				if(argv[1][2] == 'F'){
-                		                        // Free memory
-                		                        if(args.size_K)
-                		                                free(args.K);
-                		                        if(args.size_S)
-                		                                free(args.S);
-                				}
-
-
-                        }
-
-                }
-                
-                return (sanitization!= 0);
         }
+        
+        return (sanitization!= 0);
 
 }
+
+#endif

@@ -5,6 +5,8 @@
 
 #define A2_BODY
 
+#define H0_LENGTH 64
+
 typedef struct{
 
         // Message P and its size = [0 .. 2^32-1]

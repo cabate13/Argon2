@@ -1,16 +1,22 @@
 # Argon2
 Argon2_AdvancedProgramming16/17
 
-Per compilare [linux/W10]:
+Per compilare:
 
-$ sudo chmod +x makefile
-$ ./makefile
+$ make
 
-Debugging:
+make options:
 
-$ sudo chmod +x gdb-makefile
-$ ./gdb-makefile
+(°) debug = 1 -> compile with flag -ggdb, creating the table of symbols
+(°) genkat = 1 -> compile with -DTEST, compiling a test main that creates the genkat test vectors as in the phc winner implementation
+(°) follow-specifications = 1 -> compile with -DFOLLOW_SPECIFICATION, strictly following the Argon2 specification
 
-Crea una versione Argon2-gdb con tutte le tabelle dei simboli per gdb, così è possibile vedere dove ci sono problemi
+exa.: $ make debug=1 genkat=1 -> Provides the table of symbols and compiles a test main. 
 
-Per compilare su OS bisogna avere la versione 6 di gcc da homebrew, poi basta usare i file per os
+Per cancellare i file oggetto e altri file di debug
+
+$ make clean
+
+Per eliminare Argon2
+
+$ make purge
