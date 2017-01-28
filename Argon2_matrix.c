@@ -118,16 +118,17 @@ uint64_t Argon2_indexing_mapping(Argon2_local_workspace* arg, Argon2_global_work
         uint32_t pair[2];
 
         pair[0] = (uint32_t)J;
-        pair[1] = (uint32_t)(J >> 32);
+        pair[1] = (uint32_t)(J >> 32); 
 
         l = pair[1] % B->p;
 
                                                                                 // Compute R, set of referenceable blocks 
         if(B->r == 0){                                                          // First step
 
-                if(B->s == 0)                                                   // First slice
+                if(B->s == 0){                                                  // First slice
                         referenceable_blocks = arg->c - 1;                      //   All computed blocks until now
-
+                        l = arg->l;
+                }
                 else{                                                           // Successive Slices
                         if(l == arg->l)                                         //   Same lane
                                 referenceable_blocks = B->s*B->segment_length   //     all blocks computed in lane but not overwritten
@@ -174,6 +175,7 @@ uint64_t Argon2_indexing_mapping(Argon2_local_workspace* arg, Argon2_global_work
         index = index % B->q;                                                   //   |
         index^= ((uint64_t)l << 32);                                            //   Save index pair as ( lane || column ) 
 
+        printf(" i = %u    j = %u    J1||J2 = %016lX      i' = %u      j' = %u   \n", arg->l, arg->c, J, l, (uint32_t)index );
         return index;
 
 }
@@ -184,11 +186,24 @@ uint64_t Argon2_indexing_mapping(Argon2_local_workspace* arg, Argon2_global_work
 uint64_t Argon2_indexing(Argon2_global_workspace* B, Argon2_local_workspace* arg){                      // If type is Argon2i or Argon2id and
                                                                                                         // we are in pas 0, slices 0,1, then
         if(B->x == A2I || ((B->x == A2ID) && (B->r == 0) && (B->s < 2))){                               // use data independent addressing
-                if(arg->counter == A2I_PAIRS_NUMBER || arg->counter == 0)                               // generate values if necessary
+               
+               #ifdef FOLLOW_SPECS
+
+                if((arg->counter == A2I_PAIRS_NUMBER) || (arg->counter == 0))                           // generate values if necessary
                         Argon2i_generate_values(B,arg);
+                        arg->counter++;
+                return Argon2_indexing_mapping( arg, B, arg->pairs[(arg->counter-1)]);                  // map indeces
+
+                #else
+
+                if((arg->c % B->segment_length) % A2I_PAIRS_NUMBER == 0 || arg->counter == 0)           // generate values if necessary
+                        Argon2i_generate_values(B,arg);
+                
                 arg->counter++;
-                return Argon2_indexing_mapping( arg, B, arg->pairs[arg->counter-1]);                    // map indeces
-        }
+                return Argon2_indexing_mapping( arg, B, arg->pairs[(arg->c % B->segment_length) % A2I_PAIRS_NUMBER]); 
+
+                #endif 
+        }                                                                                                                
         else                                                                                            // Otherwise just use data dependent
                 return Argon2_indexing_mapping( arg, B, Argon2d_generate_values(B, arg->l, arg->c));    // p.r. and map indeces
 

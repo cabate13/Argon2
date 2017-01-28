@@ -37,10 +37,14 @@ Argon2_matrix:
 Argon2_body: 
 	$(CC) -o $@.o -c $@.c $(CFLAGS)
 
+TEST :  Blake2b.o Argon2_compression.o Argon2_matrix.o Argon2_body.o
+	$(CC) $@.c $? -o $@ $(CFLAGS)
+
 .PHONY : clean purge
 clean:
 	-rm *.o
 	-rm -rf *.dSYM
+	-rm TEST
 purge: clean
 	-rm Argon2
 

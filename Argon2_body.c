@@ -100,7 +100,7 @@ void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 		if(Argon2_matrix_get_block(args->l,args->c, &block, B))		// Get block B[l][c]
 			ERROR("A2B:: Unable to get block [l,c]");
 
-		XOR_128(support, block, block);					// Compute B[l][c] XOR G(B[l][c-1], B[i'][j'])
+		XOR_128(support, block, block);	     			// Compute B[l][c] XOR G(B[l][c-1], B[i'][j'])
 
 	}
 
