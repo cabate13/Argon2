@@ -175,7 +175,8 @@ uint64_t Argon2_indexing_mapping(Argon2_local_workspace* arg, Argon2_global_work
         index = index % B->q;                                                   //   |
         index^= ((uint64_t)l << 32);                                            //   Save index pair as ( lane || column ) 
 
-        printf(" i = %u    j = %u    J1||J2 = %016lX      i' = %u      j' = %u   \n", arg->l, arg->c, J, l, (uint32_t)index );
+        //to print J1||J2 uncomment the following
+        //printf(" i = %u    j = %u    J1||J2 = %016lX      i' = %u      j' = %u   \n", arg->l, arg->c, J, l, (uint32_t)index );
         return index;
 
 }

@@ -448,6 +448,8 @@ int main(int argc, char* argv[]){
                                 printf("%02X",tag[i]);
                         printf("\n");
 
+                        free(tag);
+
                         // Free memory if input is read from file
 			if(argv[1][2] == 'F'){
 	                        // Free memory
