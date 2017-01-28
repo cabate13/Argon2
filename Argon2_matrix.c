@@ -1,14 +1,12 @@
-// Argon2 v1.3 : PHC release
-//
-//      C implementation of the Argon2 memory hard function for password hashing and others applications
-//
-//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
-//
-
+/** 
+* @file
+* Manages memory used in Argon2, with particular care to block indexing and safe inizialization and destruction
+*/
 #include "Argon2_matrix.h"
 
 /*
-* Initializes the matrix and sets its parameters
+ * @fn int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x, Argon2_global_workspace* B)
+ * Initializes the matrix and sets its parameters
 */
 int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x, Argon2_global_workspace* B){
 
@@ -37,8 +35,9 @@ int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x,
 
 }
 
-/*
- * Gets the block in position (i,j) in the Argon2 matrix B, returning a pointer to it
+/**
+ * @fn int Argon2_matrix_get_block(uint32_t i, uint32_t j, uint64_t** dst, Argon2_global_workspace* src)
+ * Gets the block in position (i,j) in the Argon2 matrix in global_workspace, returning a pointer to it
  */
 int Argon2_matrix_get_block(uint32_t i, uint32_t j, uint64_t** dst, Argon2_global_workspace* src){
 
@@ -50,7 +49,8 @@ int Argon2_matrix_get_block(uint32_t i, uint32_t j, uint64_t** dst, Argon2_globa
 
 }
 
-/*
+/**
+ * @fn void Argon2_global_workspace_free(Argon2_global_workspace* B)
  * Deallocates the memory of the matrix and, if it is the case, also the memory used for the S-Box
  */
 void Argon2_global_workspace_free(Argon2_global_workspace* B){
@@ -62,8 +62,10 @@ void Argon2_global_workspace_free(Argon2_global_workspace* B){
 		free(B->S);
 
 }
-/*
- * Generates J1, J2 as specified in Argon2d: data dependent
+
+/**
+ * @fn uint64_t Argon2d_generate_values(Argon2_global_workspace* B, uint32_t i, uint32_t j)
+ * Generates J1, J2 as specified in Argon2d data dependent indexing
  */
 uint64_t Argon2d_generate_values(Argon2_global_workspace* B, uint32_t i, uint32_t j){
 
@@ -78,8 +80,10 @@ uint64_t Argon2d_generate_values(Argon2_global_workspace* B, uint32_t i, uint32_
         return J;
 
 }
-/*
- * Generates 128 pairs (J1,J2) t.b.u. in the data independent indexing function
+
+/**
+ * @fn void Argon2i_generate_values(Argon2_global_workspace* B, Argon2_local_workspace* args)
+ * Generates 128 pairs (J1,J2) t.b.u. in the data independent indexing function for Argon2i and Argon2id
  */
 void Argon2i_generate_values(Argon2_global_workspace* B, Argon2_local_workspace* args){
 
@@ -106,8 +110,9 @@ void Argon2i_generate_values(Argon2_global_workspace* B, Argon2_local_workspace*
 
 }
 
-/*
- * Maps the values J1, J2 into i',j' t.b.u. in the Argon2 round
+/**
+ * @fn uint64_t Argon2_indexing_mapping(Argon2_local_workspace* arg, Argon2_global_workspace* B, uint64_t J)
+ * Maps the values J1, J2 into i',j', indeces of a referenciable block 
  */
 uint64_t Argon2_indexing_mapping(Argon2_local_workspace* arg, Argon2_global_workspace* B, uint64_t J){
 
@@ -175,14 +180,13 @@ uint64_t Argon2_indexing_mapping(Argon2_local_workspace* arg, Argon2_global_work
         index = index % B->q;                                                   //   |
         index^= ((uint64_t)l << 32);                                            //   Save index pair as ( lane || column ) 
 
-        //to print J1||J2 uncomment the following
-        //printf(" i = %u    j = %u    J1||J2 = %016lX      i' = %u      j' = %u   \n", arg->l, arg->c, J, l, (uint32_t)index );
         return index;
 
 }
 
 /*
- * Calls the functions relative to the indexing procedure, dependig on the type of Argon2
+ * @fn uint64_t Argon2_indexing(Argon2_global_workspace* B, Argon2_local_workspace* arg)
+ * Handles the different indexing procedures, dependig on the type of Argon2
  */
 uint64_t Argon2_indexing(Argon2_global_workspace* B, Argon2_local_workspace* arg){                      // If type is Argon2i or Argon2id and
                                                                                                         // we are in pas 0, slices 0,1, then

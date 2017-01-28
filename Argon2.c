@@ -1,107 +1,12 @@
-// Argon2 v1.3 : PHC release
-//      
-//      C implementation of the Argon2 memory hard function for password hashing and others applications
-//           
-//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
-//
-
-#include <stdlib.h>
-#include <stdio.h>
-#include "Argon2_body.h"
-
-// definitions for input sanitizations
-#define NO_INPUT_GIVEN 1
-#define MALFORMED_INPUT 2
-#define MISSING_PARAMETER 3
-#define NON_VALID_INPUT_FILE 4
-#define MALFORMED_INPUT_FILE 5
-#define GENERATE_TEMPLATE 6
-#define UNABLE_TO_WRITE_TEMPLATE 7
-#define SUCCESS 0
-
-/*
- * Test main, runs the four types of argon2 with the following inputs:
- *
- * Memory: 32 KiB, Iterations: 3, Parallelism: 4 lanes, Tag length: 32 bytes
- * Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
- * Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
- * Secret[8]: 03 03 03 03 03 03 03 03 
- * Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04 
+/** @file Argon2.c
  * 
- * and prints the resulting Tag
- */
-#if defined TEST
-
-int main(){
-
-    Argon2_arguments args;
-    uint8_t P[32];
-    uint8_t S[16];
-    uint8_t K[8];
-    uint8_t X[12];
-    uint8_t tag[32];
-
-    memset(P,0x01,32);        
-    memset(S,0x02,16);
-    memset(K,0x03,8);
-    memset(X,0x04,12);
-    args.P = P;
-    args.size_P = 32;
-    args.S = S;
-    args.size_S = 16;
-    args.p = 4;
-    args.tau = 32;
-    args.m = 32; // 32 KiB
-    args.t = 3;
-    args.v = 0x13; 
-    args.size_K = 8;
-    args.K = K;
-    args.X = X;
-    args.size_X = 12;
-    args.y = 0;
-
-    Argon2(&args, tag);
-    printf("Argon2d test: \n");
-    printf("tag: ");
-    for(int i = 0;i < args.tau; i++)
-            printf("%02X ", tag[i]);
-    printf("\n\n===============================\n\n");
-
-    args.y = 1;
-
-    Argon2(&args, tag);
-    printf("Argon2i test: \n");
-    printf("tag: ");
-    for(int i = 0;i < args.tau; i++)
-            printf("%02X ", tag[i]);
-    printf("\n\n===============================\n\n");
-
-    args.y = 2;
-
-    Argon2(&args, tag);
-    printf("Argon2id test: \n");
-    printf("tag: ");
-    for(int i = 0;i < args.tau; i++)
-            printf("%02X ", tag[i]);
-    printf("\n\n===============================\n\n");
-
-    args.y = 4;
-
-    Argon2(&args, tag);
-    printf("Argon2ds test: \n");
-    printf("tag: ");
-    for(int i = 0;i < args.tau; i++)
-            printf("%02X ", tag[i]);
-    printf("\n\n");
-
-        return 0;
-
-}
-
-#else
-
-/* 
- * Actual implementation of Argon2 v1.3, wrapped in a main that handles input and correctly initializes arguments [hopefully]
+ * Argon2 v1.3 : PHC release
+ *     
+ *      C implementation of the Argon2 memory hard function for password hashing and others applications
+ *           
+ *      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
+ *
+ * The actual implementation of Argon2 v1.3 is wrapped in a main that handles input and correctly initializes arguments
  *
  * - Required input:
  *  (°) Password P and its size         (check_input_received[0-1])
@@ -146,6 +51,21 @@ int main(){
  *  (°) tau: <tag size>
  */
 
+
+#include <stdlib.h>
+#include <stdio.h>
+#include "Argon2_body.h"
+
+// definitions for input sanitizations
+#define NO_INPUT_GIVEN 1
+#define MALFORMED_INPUT 2
+#define MISSING_PARAMETER 3
+#define NON_VALID_INPUT_FILE 4
+#define MALFORMED_INPUT_FILE 5
+#define GENERATE_TEMPLATE 6
+#define UNABLE_TO_WRITE_TEMPLATE 7
+#define SUCCESS 0
+
 // Prints the arguments passed to Argon2
 #define PRINT_ARG_S {printf("Password: ");for(int i = 0;i<args.size_P;i++)printf("%c",args.P[i]);printf("\n");\
                      printf("Salt: ");for(int i = 0;i<args.size_S;i++)printf("%c",args.S[i]);printf("\n");\
@@ -157,7 +77,10 @@ const char* man =
 const char* template = 
 "# This is a template for the Argon2 input file. Lines starting with # will be ignored\nS_size: <size of salt>\nS: <salt>\nK_size: <size of secret data>\nK: <secret data>\np: <degree of parallelization>\nm: <total memory usage in KiB>\nt: <total passes>\nv: <type of Argon2>\ntau: <tag size>";
 
-// File input sanitization
+/**
+*  @fn int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint8_t* check_input_received)
+*  File input sanitization
+*/
 int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint8_t* check_input_received){
 
         // Gets password and associated data from command line
@@ -216,7 +139,7 @@ int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint
 
                                 if((fgets(data_buffer,args->size_S+5,input_file) == NULL) || (data_buffer[args->size_S+3] != '\n'))
                                         return MALFORMED_INPUT_FILE;
-                                args->S = (uint8_t*)malloc(args->size_S);  // to free in the end!
+                                args->S = (uint8_t*)malloc(args->size_S);  // to free at the end!
                                 memcpy(args->S,data_buffer+3,args->size_S);
                                 check_input_received[2] =1;
                                 check_input_received[3] =1;
@@ -229,7 +152,7 @@ int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint
 
                                 if((fgets(data_buffer,args->size_K+5,input_file) == NULL) || (data_buffer[args->size_K+3] != '\n'))
                                         return MALFORMED_INPUT_FILE;
-                                args->K = (uint8_t*)malloc(args->size_K);  // to free in the end!
+                                args->K = (uint8_t*)malloc(args->size_K);  // to free at the end!
                                 memcpy(args->K,data_buffer+3,args->size_K);
                                 check_input_received[11] =1;
                                 check_input_received[12] =1;
@@ -283,7 +206,10 @@ int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint
 
 }
 
-// Command line input sanitization
+/**
+*  @fn int command_line_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint8_t* check_input_received)
+*  Command line input sanitization
+*/
 int command_line_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint8_t* check_input_received){
 
         int i = 2;
@@ -372,7 +298,10 @@ int command_line_input_sanitization(int argc, char* argv[], Argon2_arguments* ar
 
 }
 
-// Checks the type of input provided (command line v.s. file) and calls the appropriate handler
+/**
+*	@fn int sanitize_input(int argc, char* argv[], Argon2_arguments* args)
+*  	Checks the type of input provided (command line v.s. file) and calls the appropriate handler
+*/
 int sanitize_input(int argc, char* argv[], Argon2_arguments* args){
 
         // Check for the received arguments: order defined above
@@ -411,6 +340,10 @@ int sanitize_input(int argc, char* argv[], Argon2_arguments* args){
 
 }
 
+/*
+* 	@fn int main(int argc, char* argv[])
+* 	Inizialization and error handling
+*/
 int main(int argc, char* argv[]){
 
         Argon2_arguments args;        
@@ -466,5 +399,3 @@ int main(int argc, char* argv[]){
         return (sanitization!= 0);
 
 }
-
-#endif
