@@ -1,20 +1,19 @@
-// Argon2 v1.3 : PHC release
-//
-//      C implementation of the Argon2 memory hard function for password hashing and others applications
-//
-//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
-//
-
+/**
+* @file
+* core functions of Argon2 
+*/
 #include "Argon2_body.h"
 
-/*
- * Concatenation of N bytes to the array. Also handles the update of the pointer to the tail of the array
+/** 
+ * 	@def
+ * 	Concatenation of N bytes to the array. It also handles the update of the pointer to the tail of the array
  */
 #if !defined CAT_N
 #define CAT_N(array,pointer,n) {memcpy(array,pointer,n); array+=n;}
 #endif
 
-/*
+/**
+ * @fn void compute_H0(Argon2_arguments* args, uint8_t* H0)
  * Computes the seed for the initialization of the first two columns in the first step of Argon2
  */
 void compute_H0(Argon2_arguments* args, uint8_t* H0){
@@ -44,7 +43,8 @@ void compute_H0(Argon2_arguments* args, uint8_t* H0){
 }
 
 
-/*
+/**
+ * @fn void compute_first_block(Argon2_global_workspace* B, uint8_t* H0, uint32_t tau, uint32_t c)
  * Initialization of the first two columns [c = 0,1] of the matrix, using the seed H0
  */
 void compute_first_block(Argon2_global_workspace* B, uint8_t* H0, uint32_t tau, uint32_t c){
@@ -70,8 +70,9 @@ void compute_first_block(Argon2_global_workspace* B, uint8_t* H0, uint32_t tau, 
 
 }
 
-/*
- * Computes all the blocks in a segment
+/**
+ *	@fn void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args)
+ * 	Computes all the blocks in a segment 
  */
 void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 
@@ -81,13 +82,13 @@ void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 	uint64_t* indexed_block;
 	uint64_t support[A2_MATRIX_BLOCK_LENGTH];
 
-	for(; args->c < (B->s+1)*B->segment_length; args->c++){			// Cycle over the elements of a segment
+	for(; args->c < (B->s+1)*B->segment_length; args->c++){				// Cycle over the elements of a segment
 
-		i_prime = Argon2_indexing(B, args);				// Compute block B[l][c]:
-		j_prime = i_prime & 0x00000000FFFFFFFF;				//   Find i',j'
+		i_prime = Argon2_indexing(B, args);								// Compute block B[l][c]:
+		j_prime = i_prime & 0x00000000FFFFFFFF;							//   Find i',j'
 		i_prime = i_prime >> 32;
 
-		if(Argon2_matrix_get_block(args->l,args->c-1 + 			//   Get block B[l][c-1 mod B->q]
+		if(Argon2_matrix_get_block(args->l,args->c-1 + 					//   Get block B[l][c-1 mod B->q]
 					   ((args->c == 0) ? B->q : 0), 
 					   &block, B))	
 			ERROR("A2B:: Unable to get block [l,c-1]");
@@ -95,18 +96,19 @@ void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 		if(Argon2_matrix_get_block(i_prime,j_prime, &indexed_block, B))	//   Get block B[i'][j']
 			ERROR("A2B:: Unable to get block [i',j']");
 		
-		A2_G(block, indexed_block, support, B->S, B->x);		// Compute G(B[l][c-1], B[i'][j'])		
+		A2_G(block, indexed_block, support, B->S, B->x);				// Compute G(B[l][c-1], B[i'][j'])		
 
-		if(Argon2_matrix_get_block(args->l,args->c, &block, B))		// Get block B[l][c]
+		if(Argon2_matrix_get_block(args->l,args->c, &block, B))			// Get block B[l][c]
 			ERROR("A2B:: Unable to get block [l,c]");
 
-		XOR_128(support, block, block);					// Compute B[l][c] XOR G(B[l][c-1], B[i'][j'])
+		XOR_128(support, block, block);	     							// Compute B[l][c] XOR G(B[l][c-1], B[i'][j'])
 
 	}
 
 }
 
-/*
+/**
+ * @fn void perform_step(Argon2_global_workspace* B)
  * Initializes arguments and handles parallel computation in an Argon2 step.
  */
 void perform_step(Argon2_global_workspace* B){
@@ -124,23 +126,24 @@ void perform_step(Argon2_global_workspace* B){
 		for(uint32_t l = 0; l < B->p; l++){						// Cycle over the segments of a slice
 
 			Argon2_local_workspace args;						// Initialize local workspace
-			args.l = l;								// Set lane index
-			if(B->s == 0 && B->r == 0)						// If first slice and first step we have
-				args.c = 2;							// already computed first two blocks
-			else 									// otherwise
+			args.l = l;											// Set lane index
+			if(B->s == 0 && B->r == 0)							// If first slice and first step we have
+				args.c = 2;										// already computed first two blocks
+			else 												// otherwise
 				args.c = B->s*B->segment_length;				// Set c to the beginning of the segment
-			args.i = 1;								// Argon2i: set counters for intexing:
-			args.counter = 0;							// i = 1 and reset used pairs counter.
+			args.i = 1;											// Argon2i: set counters for intexing:
+			args.counter = 0;									// i = 1 and reset used pairs counter.
 
-			compute_segment(B,&args);						// Compute the new value for the blocks 
-												// int the segment
+			compute_segment(B,&args);							// Compute the new value for the blocks 
+																// int the segment
 		}
 
 	}
 
 }
 	
-/*
+/**
+* @fn void finalize(Argon2_global_workspace* B, uint64_t* B_final)
 * Function to get the final block. Remark: B_final needs to be whitened
 */
 void finalize(Argon2_global_workspace* B, uint64_t* B_final){
@@ -157,6 +160,10 @@ void finalize(Argon2_global_workspace* B, uint64_t* B_final){
 	}
 }
 
+/**
+* @fn void Argon2(Argon2_arguments* args, uint8_t* tag)
+* Simply Argon2 
+*/
 void Argon2(Argon2_arguments* args, uint8_t* tag){
 
 
