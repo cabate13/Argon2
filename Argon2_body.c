@@ -4,17 +4,19 @@
 */
 #include "Argon2_body.h"
 
-/** 
- * 	@def
- * 	Concatenation of N bytes to the array. It also handles the update of the pointer to the tail of the array
- */
+
 #if !defined CAT_N
+ 
+///	@def CAT_N
+///	Concatenation of N bytes to the array. It also handles the update of the pointer to the tail of the array
 #define CAT_N(array,pointer,n) {memcpy(array,pointer,n); array+=n;}
 #endif
 
 /**
  * @fn void compute_H0(Argon2_arguments* args, uint8_t* H0)
  * Computes the seed for the initialization of the first two columns in the first step of Argon2
+ * @param args 	pointer to the arguments for Argon2 to be inizialized
+ * @param H0 	pointer to H0, initial seed for the first block computation
  */
 void compute_H0(Argon2_arguments* args, uint8_t* H0){
 
@@ -46,6 +48,10 @@ void compute_H0(Argon2_arguments* args, uint8_t* H0){
 /**
  * @fn void compute_first_block(Argon2_global_workspace* B, uint8_t* H0, uint32_t tau, uint32_t c)
  * Initialization of the first two columns [c = 0,1] of the matrix, using the seed H0
+ * @param B 	pointer to the memory matrix used for data storage in Argon2
+ * @param H0 	pointer to H0, initial seed for the first block computation
+ * @param tau	tag length
+ * @param c 	column index 
  */
 void compute_first_block(Argon2_global_workspace* B, uint8_t* H0, uint32_t tau, uint32_t c){
 	
@@ -73,6 +79,8 @@ void compute_first_block(Argon2_global_workspace* B, uint8_t* H0, uint32_t tau, 
 /**
  *	@fn void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args)
  * 	Computes all the blocks in a segment 
+ *  @param B 	pointer to the memory matrix used for data storage in Argon2
+ * 	@param args pointer to the arguments for Argon2 to be inizialized 	
  */
 void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 
@@ -110,6 +118,7 @@ void compute_segment(Argon2_global_workspace* B, Argon2_local_workspace* args){
 /**
  * @fn void perform_step(Argon2_global_workspace* B)
  * Initializes arguments and handles parallel computation in an Argon2 step.
+ * @param B 	pointer to the memory matrix used for data storage in Argon2
  */
 void perform_step(Argon2_global_workspace* B){
 
@@ -145,6 +154,8 @@ void perform_step(Argon2_global_workspace* B){
 /**
 * @fn void finalize(Argon2_global_workspace* B, uint64_t* B_final)
 * Function to get the final block. Remark: B_final needs to be whitened
+* @param B 			pointer to the memory matrix used for data storage in Argon2
+* @param B_final 	pointer to the pre-hashing digest of Argon2
 */
 void finalize(Argon2_global_workspace* B, uint64_t* B_final){
 
@@ -160,9 +171,11 @@ void finalize(Argon2_global_workspace* B, uint64_t* B_final){
 	}
 }
 
-/**
+/*
 * @fn void Argon2(Argon2_arguments* args, uint8_t* tag)
-* Simply Argon2 
+* Initializes the global environment, performs computations and stores the output in tag
+* @param args pointer to the arguments for Argon2 to be inizialized 
+* @param tag  pointer to the tag
 */
 void Argon2(Argon2_arguments* args, uint8_t* tag){
 
