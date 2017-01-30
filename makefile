@@ -1,13 +1,11 @@
 debug = 0
 follow-specifications = 0
-CFLAGS += -fopenmp 
+CFLAGS += -fopenmp -O3
 BAD_MEMORY_FLAGS = -g -std=c99
 CC = gcc
 UNAME_S := $(shell uname -s)
 SRC = Blake2b.o Argon2_compression.o Argon2_matrix.o Argon2_body.o
-DST = Argon2
-
-
+DST = Argon2 
 
 # Handle debug version
 ifeq ($(debug), 1)
@@ -37,21 +35,26 @@ Argon2_matrix:
 Argon2_body: 
 	$(CC) -o $@.o -c $@.c $(CFLAGS)
 
-TEST : $(SRC)
+test : $(SRC)
 	$(CC) $@.c $? -o $@ $(CFLAGS)
 
 bad_memory : $(SRC)
 	$(CC) $(DST).c $? -o $(DST) $(CFLAGS) $(BAD_MEMORY_FLAGS) 
 
-TEST_bad_memory : $(SRC)
+test_bad_memory : $(SRC)
 	$(CC) $(BAD_MEMORY_FLAGS) TEST.c $? -o TEST $(CFLAGS) 
+
+bench : $(SRC)
+	$(CC) $@.c $? -o $@ $(CFLAGS)
 
 
 .PHONY : clean purge
 clean:
 	-rm *.o
 	-rm -rf *.dSYM
-	-rm TEST
+	-rm test
+	-rm bench
+
 purge: clean
 	-rm Argon2
 

@@ -1,0 +1,4 @@
+Va testato anche sul tuo, per avere un altro sistema come si comporta
+fai un tag_test_ubuntu.txt con la ./test del make test e un bench_ubuntu.txt con la ./bench del make bench.
+Poi usando la versione ufficiale se fai make bench ti crea anche lì un eseguibile bench e puoi fare un file bench_official_ubuntu.txt
+
