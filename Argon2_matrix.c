@@ -4,9 +4,14 @@
 */
 #include "Argon2_matrix.h"
 
-/*
+/**
  * @fn int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x, Argon2_global_workspace* B)
  * Initializes the matrix and sets its parameters
+ * @param m     KiB of memory to be used rounded down to the closest multiple of 4p
+ * @param p     maximum degree of parallelism
+ * @param t     total number of passes
+ * @param x     type of Argon function
+ * @param B     pointer to the memory matrix used for data storage in Argon2     
 */
 int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x, Argon2_global_workspace* B){
 
@@ -37,7 +42,7 @@ int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x,
 
 /**
  * @fn int Argon2_matrix_get_block(uint32_t i, uint32_t j, uint64_t** dst, Argon2_global_workspace* src)
- * Gets the block in position (i,j) in the Argon2 matrix in global_workspace, returning a pointer to it
+ * Gets the block in position (i,j) in the Argon2 matrix in global_workspace, storing it in dst
  */
 int Argon2_matrix_get_block(uint32_t i, uint32_t j, uint64_t** dst, Argon2_global_workspace* src){
 

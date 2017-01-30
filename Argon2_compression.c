@@ -1,12 +1,16 @@
-// Argon2 v1.3 : PHC release
-//
-//      C implementation of the Argon2 memory hard function for password hashing and others applications
-//
-//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
-//
-
+/**
+* @file 
+* Compression function of Argon2. It is built upon the function P taken from Blake2b
+*/
 #include "Argon2_compression.h"
 
+/*
+* @fn void XOR_128(const uint64_t* X, const uint64_t* Y, uint64_t* res)
+* Utility function performing the componentwise xor of two arrays
+* @param X      pointer to the first input array
+* @param Y      pointer to the second input array
+* @param res    pointer to the result of the xor
+*/
 void XOR_128(const uint64_t* X, const uint64_t* Y, uint64_t* res){
 
     for(int i = 0; i<128; ++i)
@@ -14,9 +18,14 @@ void XOR_128(const uint64_t* X, const uint64_t* Y, uint64_t* res){
 
 }
 
-/*
-* Slightly modified version of the function B2B_G in Blake2b  
-* It is the core function for the permutation P
+/** 
+*    @fn void Core_G(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d)
+*   Slightly modified version of the function B2B_G in Blake2b  
+*   It is the core function for the permutation P
+*   @param a    pointer to one of the input of the core of the round function of Blake2b
+*   @param b    pointer to one of the input of the core of the round function of Blake2b
+*   @param c    pointer to one of the input of the core of the round function of Blake2b
+*   @param d    pointer to one of the input of the core of the round function of Blake2b
 */
 void Core_G(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d){
 
@@ -31,9 +40,11 @@ void Core_G(uint64_t* a, uint64_t* b, uint64_t* c, uint64_t* d){
 
 }
 
-/*
+/**
+* @fn void P(uint64_t* S)
 * Slightly modified version of round function of Blake2b 
 * it takes as input the address of an array cointaining 16 uint64_t
+* @param S  pointer to input of the round function of Blake2b
 */
 void P(uint64_t* S){
 
@@ -48,11 +59,17 @@ void P(uint64_t* S){
 
 }
 
-/*
- * Round function for the S-Box initialization Argon2ds
- */
+
+/// @def A2DS_F
+/// Round function for the S-Box initialization Argon2ds
 #define A2DS_F {for (int k = 0; k < 8; ++k) P(block_00+16*k);}
 
+/*
+* @fn void S_Box_Inizialization(uint64_t* block_00, uint64_t* S)
+* Inizialization of the s box for the 2ds version
+* @param block_00   pointer to the block in position [0,0] of the matrix B
+* @param S          pointer to the image of the S box 
+*/
 void S_Box_Inizialization(uint64_t* block_00, uint64_t* S){
 
     for (int i = 0; i < 8 ; ++i)
@@ -63,8 +80,12 @@ void S_Box_Inizialization(uint64_t* block_00, uint64_t* S){
     }
 
 }
-/*
- * Scrambles W using the S-Box S
+
+/**
+ * @fn uint64_t Tau(uint64_t W, uint64_t* S)
+ * 64-bit transformation involved in the 2ds version
+ * @param W          64-bit word
+ * @param S          pointer to the image of the S box   
  */
 uint64_t Tau(uint64_t W, uint64_t* S){
 
@@ -82,8 +103,13 @@ uint64_t Tau(uint64_t W, uint64_t* S){
 
     return W;
 }
-/*
- * Further scrambling using the S-Box, takes R and Z as described in A2_G
+
+/**
+ * @fn void A2DS_compression(uint64_t* R, uint64_t* Z, uint64_t* S)
+ * Extra computation required in the compression function for the 2ds version
+ * @param R     pointer to R defined in the compression function
+ * @param Z     pointer to Z defined in the compression function
+ * @param S     pointer to the image of the S box
  */
 void A2DS_compression(uint64_t* R, uint64_t* Z, uint64_t* S){
 
@@ -100,9 +126,13 @@ void A2DS_compression(uint64_t* R, uint64_t* Z, uint64_t* S){
 }
 
 /*
- * Main compression functions of Argon2, takes as input
- * two arrays of 1024 bytes and compresses them into one array
- * of 1024 bytes.
+ * @fn void A2_G(const uint64_t* X, const uint64_t* Y, uint64_t* result, uint64_t* S, uint8_t type)
+ * Compression functions of Argon2  G : (X,Y) -> R = X ^ Y -> Q -> Z -> Z ^ R. 
+ * @param X         pointer to the first input of the compression function
+ * @param Y         pointer to the second input of the compression function
+ * @param result    pointer to the result of the compression function
+ * @param S         pointer to the image of the S box 
+ * @param type      version of Argon2 to be used
  */
 void A2_G(const uint64_t* X, const uint64_t* Y, uint64_t* result, uint64_t* S, uint8_t type){
 
@@ -144,7 +174,12 @@ void A2_G(const uint64_t* X, const uint64_t* Y, uint64_t* result, uint64_t* S, u
 }
 
 /*
- * Multi-lenght hash function based on Blake2b. 
+ * @fn void H_prime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
+ * Variable-lenght hash function based on Blake2b. 
+ * @param X         pointer to the input of Argon2 hash function 
+ * @param sizex     size of the input
+ * @param tau       length of the digest
+ * @param digest    pointer to the resulting digest
  */
 void H_prime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest){
 

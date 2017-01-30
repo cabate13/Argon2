@@ -1,25 +1,31 @@
-// Blake2b implementation
-//
-//      C implementation of the blake2b multi-length hash function
-//      and its round function.
-//      
-//      Credits to:  Jean-Philippe Aumasson, Samuel Neves, Zooko Wilcox-O'Hearn, and Christian Winnerlein
-//
+/**
+* @file
+* Ad hoc version of Blake2b 
+*/
 
 #include "Blake2b.h"
 
 // Constants definition
 
-#define WORD_LENGTH 64       
-#define ROUNDS_NUMER 12            
-#define BLOCK_LENGTH 128      
+//! @def length of a word
+#define WORD_LENGTH 64  
+//! @def number of rounds required     
+#define ROUNDS_NUMER 12   
+//! @def length of a block         
+#define BLOCK_LENGTH 128 
+//! @def dimension of the workspace     
 #define WORKSPACE_LENGTH 8  
 
-#define R1 32       // ROT_SHIFT offsets
+//! @def a type of a rotational shift
+#define R1 32 
+//! @def a type of a rotational shift    
 #define R2 24
+//! @def a type of a rotational shift
 #define R3 16
+//! @def a type of a rotational shift
 #define R4 63
 
+//! @var 
 static const size_t SIGMA[12][16] = {
    { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
    { 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3 },

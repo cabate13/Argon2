@@ -1,51 +1,57 @@
-// Argon2 v1.3 : PHC release
-//
-//      C implementation of the Argon2 memory hard function for password hashing and others applications
-//
-//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
-//
-
+/**
+* @file
+* Interface for Argon2
+*/
 #if !defined A2_BODY
-
 #define A2_BODY
+
+/// @def H0_LENGTH
+/// length of the initial seed for first block computation
 #define H0_LENGTH 64
 
 #include "Argon2_matrix.h"
 
-/*
- * Contains the parameters necessary for Argon2
+/**
+ * @struct
+ * Contains all the parameters necessary for Argon2
  */
 typedef struct{
 
         // Message P and its size = [0 .. 2^32-1]
         uint8_t* P;
         uint32_t size_P;
-        // Nonce S and its size = [8 .. 2^32-1]
+        //! Nonce S 
         uint8_t* S;
+        //! nonce size, in [8 .. 2^32-1]
         uint32_t size_S;
-        // Degree of parallelization [1 .. 2^24-1]
+        //! Degree of parallelization, in [1 .. 2^24-1]
         uint32_t p;
-        // Tag length 
+        //! Tag length 
         uint32_t tau;
-        // Total number of memory blocks
+        //! Total number of memory blocks
         uint32_t m;
-        // Number of steps
+        //! Number of steps
         uint32_t t;
-        // Version byte, default = 0x13
+        //! Version byte, default = 0x13
         uint32_t v;
-        // Key K and its size = [0 .. 2^32]
+        //! Key K 
         uint8_t* K;
+        //! Key size, in [0 .. 2^32]
         uint32_t size_K;
-        // Associated data X and its size = [0..2^32]
+        //! Associated data X 
         uint8_t* X;
+        //! Associated data size, in [0..2^32]
         uint32_t size_X;
-        // Type value
+        //! Type value, defining the version of Argon2 : 0 = d , 1 = i , 2 = id , 4 = ds
         uint32_t y;
 
 }Argon2_arguments;
 
-/*
- * Argon2 main function, initializes the global environment, performs computations and stores the output in tag 
+/**
+ * @fn void Argon2(Argon2_arguments* args, uint8_t* tag)
+ * Initializes the global environment, performs computations and stores the output in tag 
+ * @param args pointer to the arguments for Argon2 to be inizialized 
+ * @param tag  pointer to the tag
  */
 void Argon2(Argon2_arguments* args, uint8_t* tag);
 
