@@ -8,15 +8,32 @@ $ make
 make options:
 
 (°) debug = 1 -> compile with flag -ggdb, creating the table of symbols
-(°) genkat = 1 -> compile with -DTEST, compiling a test main that creates the genkat test vectors as in the phc winner implementation
 (°) follow-specifications = 1 -> compile with -DFOLLOW_SPECIFICATION, strictly following the Argon2 specification
 
-exa.: $ make debug=1 genkat=1 -> Provides the table of symbols and compiles a test main. 
+exa.: $ make debug=1  
 
-Per cancellare i file oggetto e altri file di debug
+Regole del makefile:
+
+Per creare un main di test, che compari l'hash generato con la versione ufficiale della phc release:
+
+$ make test
+
+Per creare una versione di argon2 o del test per argon2 su cui fare un'analisi della memoria usata:
+
+$ make bad_memory
+
+o
+
+$ make test_bad_memory
+
+Per creare un benchmark che valuti le prestazioni di Argon2 su diversi parametri:
+
+$ make bench
+
+Per cancellare i file oggetto e altri file evenutalmente creati:
 
 $ make clean
 
-Per eliminare Argon2
+Per eliminare completamente Argon2:
 
 $ make purge

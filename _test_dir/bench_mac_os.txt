@@ -1,0 +1,260 @@
+Argon2d, 1 MiB, 1 max threads: 0.006663 seconds
+Argon2i, 1 MiB, 1 max threads: 0.005189 seconds
+Argon2id, 1 MiB, 1 max threads: 0.004993 seconds
+Argon2s, 1 MiB, 1 max threads: 0.006297 seconds
+
+Argon2d, 1 MiB, 2 max threads: 0.004279 seconds
+Argon2i, 1 MiB, 2 max threads: 0.004530 seconds
+Argon2id, 1 MiB, 2 max threads: 0.004299 seconds
+Argon2s, 1 MiB, 2 max threads: 0.005632 seconds
+
+Argon2d, 1 MiB, 4 max threads: 0.005424 seconds
+Argon2i, 1 MiB, 4 max threads: 0.005674 seconds
+Argon2id, 1 MiB, 4 max threads: 0.007015 seconds
+Argon2s, 1 MiB, 4 max threads: 0.008222 seconds
+
+Argon2d, 1 MiB, 8 max threads: 0.007243 seconds
+Argon2i, 1 MiB, 8 max threads: 0.007633 seconds
+Argon2id, 1 MiB, 8 max threads: 0.007571 seconds
+Argon2s, 1 MiB, 8 max threads: 0.008450 seconds
+
+Argon2d, 2 MiB, 1 max threads: 0.009840 seconds
+Argon2i, 2 MiB, 1 max threads: 0.009476 seconds
+Argon2id, 2 MiB, 1 max threads: 0.008894 seconds
+Argon2s, 2 MiB, 1 max threads: 0.011163 seconds
+
+Argon2d, 2 MiB, 2 max threads: 0.011292 seconds
+Argon2i, 2 MiB, 2 max threads: 0.011340 seconds
+Argon2id, 2 MiB, 2 max threads: 0.011973 seconds
+Argon2s, 2 MiB, 2 max threads: 0.011201 seconds
+
+Argon2d, 2 MiB, 4 max threads: 0.014027 seconds
+Argon2i, 2 MiB, 4 max threads: 0.013739 seconds
+Argon2id, 2 MiB, 4 max threads: 0.013570 seconds
+Argon2s, 2 MiB, 4 max threads: 0.015246 seconds
+
+Argon2d, 2 MiB, 8 max threads: 0.013276 seconds
+Argon2i, 2 MiB, 8 max threads: 0.014019 seconds
+Argon2id, 2 MiB, 8 max threads: 0.013603 seconds
+Argon2s, 2 MiB, 8 max threads: 0.015540 seconds
+
+Argon2d, 4 MiB, 1 max threads: 0.018769 seconds
+Argon2i, 4 MiB, 1 max threads: 0.017646 seconds
+Argon2id, 4 MiB, 1 max threads: 0.016132 seconds
+Argon2s, 4 MiB, 1 max threads: 0.021164 seconds
+
+Argon2d, 4 MiB, 2 max threads: 0.020522 seconds
+Argon2i, 4 MiB, 2 max threads: 0.019486 seconds
+Argon2id, 4 MiB, 2 max threads: 0.017639 seconds
+Argon2s, 4 MiB, 2 max threads: 0.026120 seconds
+
+Argon2d, 4 MiB, 4 max threads: 0.026772 seconds
+Argon2i, 4 MiB, 4 max threads: 0.027313 seconds
+Argon2id, 4 MiB, 4 max threads: 0.027260 seconds
+Argon2s, 4 MiB, 4 max threads: 0.031093 seconds
+
+Argon2d, 4 MiB, 8 max threads: 0.025746 seconds
+Argon2i, 4 MiB, 8 max threads: 0.027404 seconds
+Argon2id, 4 MiB, 8 max threads: 0.027043 seconds
+Argon2s, 4 MiB, 8 max threads: 0.031022 seconds
+
+Argon2d, 8 MiB, 1 max threads: 0.037626 seconds
+Argon2i, 8 MiB, 1 max threads: 0.033624 seconds
+Argon2id, 8 MiB, 1 max threads: 0.034859 seconds
+Argon2s, 8 MiB, 1 max threads: 0.044964 seconds
+
+Argon2d, 8 MiB, 2 max threads: 0.039867 seconds
+Argon2i, 8 MiB, 2 max threads: 0.041314 seconds
+Argon2id, 8 MiB, 2 max threads: 0.038812 seconds
+Argon2s, 8 MiB, 2 max threads: 0.050179 seconds
+
+Argon2d, 8 MiB, 4 max threads: 0.055837 seconds
+Argon2i, 8 MiB, 4 max threads: 0.057100 seconds
+Argon2id, 8 MiB, 4 max threads: 0.055635 seconds
+Argon2s, 8 MiB, 4 max threads: 0.064030 seconds
+
+Argon2d, 8 MiB, 8 max threads: 0.055516 seconds
+Argon2i, 8 MiB, 8 max threads: 0.056053 seconds
+Argon2id, 8 MiB, 8 max threads: 0.056220 seconds
+Argon2s, 8 MiB, 8 max threads: 0.064148 seconds
+
+Argon2d, 16 MiB, 1 max threads: 0.078258 seconds
+Argon2i, 16 MiB, 1 max threads: 0.074201 seconds
+Argon2id, 16 MiB, 1 max threads: 0.074506 seconds
+Argon2s, 16 MiB, 1 max threads: 0.086412 seconds
+
+Argon2d, 16 MiB, 2 max threads: 0.085728 seconds
+Argon2i, 16 MiB, 2 max threads: 0.078974 seconds
+Argon2id, 16 MiB, 2 max threads: 0.075126 seconds
+Argon2s, 16 MiB, 2 max threads: 0.096232 seconds
+
+Argon2d, 16 MiB, 4 max threads: 0.112401 seconds
+Argon2i, 16 MiB, 4 max threads: 0.110620 seconds
+Argon2id, 16 MiB, 4 max threads: 0.111698 seconds
+Argon2s, 16 MiB, 4 max threads: 0.127968 seconds
+
+Argon2d, 16 MiB, 8 max threads: 0.112372 seconds
+Argon2i, 16 MiB, 8 max threads: 0.112790 seconds
+Argon2id, 16 MiB, 8 max threads: 0.111685 seconds
+Argon2s, 16 MiB, 8 max threads: 0.127831 seconds
+
+Argon2d, 32 MiB, 1 max threads: 0.160152 seconds
+Argon2i, 32 MiB, 1 max threads: 0.147497 seconds
+Argon2id, 32 MiB, 1 max threads: 0.147439 seconds
+Argon2s, 32 MiB, 1 max threads: 0.184101 seconds
+
+Argon2d, 32 MiB, 2 max threads: 0.158060 seconds
+Argon2i, 32 MiB, 2 max threads: 0.160494 seconds
+Argon2id, 32 MiB, 2 max threads: 0.153288 seconds
+Argon2s, 32 MiB, 2 max threads: 0.189207 seconds
+
+Argon2d, 32 MiB, 4 max threads: 0.214414 seconds
+Argon2i, 32 MiB, 4 max threads: 0.195400 seconds
+Argon2id, 32 MiB, 4 max threads: 0.183507 seconds
+Argon2s, 32 MiB, 4 max threads: 0.222505 seconds
+
+Argon2d, 32 MiB, 8 max threads: 0.213447 seconds
+Argon2i, 32 MiB, 8 max threads: 0.209045 seconds
+Argon2id, 32 MiB, 8 max threads: 0.181033 seconds
+Argon2s, 32 MiB, 8 max threads: 0.219821 seconds
+
+Argon2d, 64 MiB, 1 max threads: 0.308487 seconds
+Argon2i, 64 MiB, 1 max threads: 0.290597 seconds
+Argon2id, 64 MiB, 1 max threads: 0.291213 seconds
+Argon2s, 64 MiB, 1 max threads: 0.357739 seconds
+
+Argon2d, 64 MiB, 2 max threads: 0.315064 seconds
+Argon2i, 64 MiB, 2 max threads: 0.303600 seconds
+Argon2id, 64 MiB, 2 max threads: 0.305679 seconds
+Argon2s, 64 MiB, 2 max threads: 0.373582 seconds
+
+Argon2d, 64 MiB, 4 max threads: 0.445082 seconds
+Argon2i, 64 MiB, 4 max threads: 0.450349 seconds
+Argon2id, 64 MiB, 4 max threads: 0.446085 seconds
+Argon2s, 64 MiB, 4 max threads: 0.442865 seconds
+
+Argon2d, 64 MiB, 8 max threads: 0.336063 seconds
+Argon2i, 64 MiB, 8 max threads: 0.374205 seconds
+Argon2id, 64 MiB, 8 max threads: 0.442845 seconds
+Argon2s, 64 MiB, 8 max threads: 0.512512 seconds
+
+Argon2d, 128 MiB, 1 max threads: 0.607636 seconds
+Argon2i, 128 MiB, 1 max threads: 0.632495 seconds
+Argon2id, 128 MiB, 1 max threads: 0.618753 seconds
+Argon2s, 128 MiB, 1 max threads: 0.764961 seconds
+
+Argon2d, 128 MiB, 2 max threads: 0.654702 seconds
+Argon2i, 128 MiB, 2 max threads: 0.667993 seconds
+Argon2id, 128 MiB, 2 max threads: 0.650701 seconds
+Argon2s, 128 MiB, 2 max threads: 0.799812 seconds
+
+Argon2d, 128 MiB, 4 max threads: 0.974733 seconds
+Argon2i, 128 MiB, 4 max threads: 0.964991 seconds
+Argon2id, 128 MiB, 4 max threads: 0.974708 seconds
+Argon2s, 128 MiB, 4 max threads: 1.091265 seconds
+
+Argon2d, 128 MiB, 8 max threads: 0.974271 seconds
+Argon2i, 128 MiB, 8 max threads: 0.971801 seconds
+Argon2id, 128 MiB, 8 max threads: 0.923546 seconds
+Argon2s, 128 MiB, 8 max threads: 1.035236 seconds
+
+Argon2d, 256 MiB, 1 max threads: 1.256237 seconds
+Argon2i, 256 MiB, 1 max threads: 1.262144 seconds
+Argon2id, 256 MiB, 1 max threads: 1.243608 seconds
+Argon2s, 256 MiB, 1 max threads: 1.522751 seconds
+
+Argon2d, 256 MiB, 2 max threads: 1.312091 seconds
+Argon2i, 256 MiB, 2 max threads: 1.369961 seconds
+Argon2id, 256 MiB, 2 max threads: 1.328067 seconds
+Argon2s, 256 MiB, 2 max threads: 1.583209 seconds
+
+Argon2d, 256 MiB, 4 max threads: 1.952278 seconds
+Argon2i, 256 MiB, 4 max threads: 1.895235 seconds
+Argon2id, 256 MiB, 4 max threads: 1.812664 seconds
+Argon2s, 256 MiB, 4 max threads: 2.198314 seconds
+
+Argon2d, 256 MiB, 8 max threads: 1.946538 seconds
+Argon2i, 256 MiB, 8 max threads: 1.809683 seconds
+Argon2id, 256 MiB, 8 max threads: 1.868332 seconds
+Argon2s, 256 MiB, 8 max threads: 2.190409 seconds
+
+Argon2d, 512 MiB, 1 max threads: 2.566907 seconds
+Argon2i, 512 MiB, 1 max threads: 2.572465 seconds
+Argon2id, 512 MiB, 1 max threads: 2.502046 seconds
+Argon2s, 512 MiB, 1 max threads: 3.033261 seconds
+
+Argon2d, 512 MiB, 2 max threads: 2.628057 seconds
+Argon2i, 512 MiB, 2 max threads: 2.697192 seconds
+Argon2id, 512 MiB, 2 max threads: 2.654933 seconds
+Argon2s, 512 MiB, 2 max threads: 3.284106 seconds
+
+Argon2d, 512 MiB, 4 max threads: 3.830510 seconds
+Argon2i, 512 MiB, 4 max threads: 3.859290 seconds
+Argon2id, 512 MiB, 4 max threads: 3.891879 seconds
+Argon2s, 512 MiB, 4 max threads: 4.440442 seconds
+
+Argon2d, 512 MiB, 8 max threads: 3.860606 seconds
+Argon2i, 512 MiB, 8 max threads: 3.876067 seconds
+Argon2id, 512 MiB, 8 max threads: 3.897090 seconds
+Argon2s, 512 MiB, 8 max threads: 4.471131 seconds
+
+Argon2d, 1024 MiB, 1 max threads: 5.387093 seconds
+Argon2i, 1024 MiB, 1 max threads: 5.435063 seconds
+Argon2id, 1024 MiB, 1 max threads: 5.334546 seconds
+Argon2s, 1024 MiB, 1 max threads: 6.589669 seconds
+
+Argon2d, 1024 MiB, 2 max threads: 5.360268 seconds
+Argon2i, 1024 MiB, 2 max threads: 5.466191 seconds
+Argon2id, 1024 MiB, 2 max threads: 5.434613 seconds
+Argon2s, 1024 MiB, 2 max threads: 6.551745 seconds
+
+Argon2d, 1024 MiB, 4 max threads: 7.850141 seconds
+Argon2i, 1024 MiB, 4 max threads: 7.857624 seconds
+Argon2id, 1024 MiB, 4 max threads: 7.873080 seconds
+Argon2s, 1024 MiB, 4 max threads: 9.018281 seconds
+
+Argon2d, 1024 MiB, 8 max threads: 7.812041 seconds
+Argon2i, 1024 MiB, 8 max threads: 7.939346 seconds
+Argon2id, 1024 MiB, 8 max threads: 7.815203 seconds
+Argon2s, 1024 MiB, 8 max threads: 8.970490 seconds
+
+Argon2d, 2048 MiB, 1 max threads: 10.433829 seconds
+Argon2i, 2048 MiB, 1 max threads: 10.430926 seconds
+Argon2id, 2048 MiB, 1 max threads: 10.482657 seconds
+Argon2s, 2048 MiB, 1 max threads: 13.128082 seconds
+
+Argon2d, 2048 MiB, 2 max threads: 10.788346 seconds
+Argon2i, 2048 MiB, 2 max threads: 11.012864 seconds
+Argon2id, 2048 MiB, 2 max threads: 10.882768 seconds
+Argon2s, 2048 MiB, 2 max threads: 13.036310 seconds
+
+Argon2d, 2048 MiB, 4 max threads: 15.779273 seconds
+Argon2i, 2048 MiB, 4 max threads: 15.937010 seconds
+Argon2id, 2048 MiB, 4 max threads: 15.707148 seconds
+Argon2s, 2048 MiB, 4 max threads: 18.081090 seconds
+
+Argon2d, 2048 MiB, 8 max threads: 15.658945 seconds
+Argon2i, 2048 MiB, 8 max threads: 16.021637 seconds
+Argon2id, 2048 MiB, 8 max threads: 15.733262 seconds
+Argon2s, 2048 MiB, 8 max threads: 18.094283 seconds
+
+Argon2d, 4096 MiB, 1 max threads: 21.962152 seconds
+Argon2i, 4096 MiB, 1 max threads: 21.414370 seconds
+Argon2id, 4096 MiB, 1 max threads: 21.356324 seconds
+Argon2s, 4096 MiB, 1 max threads: 25.845830 seconds
+
+Argon2d, 4096 MiB, 2 max threads: 21.735515 seconds
+Argon2i, 4096 MiB, 2 max threads: 22.615165 seconds
+Argon2id, 4096 MiB, 2 max threads: 22.153675 seconds
+Argon2s, 4096 MiB, 2 max threads: 26.358185 seconds
+
+Argon2d, 4096 MiB, 4 max threads: 31.626197 seconds
+Argon2i, 4096 MiB, 4 max threads: 31.952570 seconds
+Argon2id, 4096 MiB, 4 max threads: 31.592677 seconds
+Argon2s, 4096 MiB, 4 max threads: 36.053222 seconds
+
+Argon2d, 4096 MiB, 8 max threads: 31.463838 seconds
+Argon2i, 4096 MiB, 8 max threads: 31.816084 seconds
+Argon2id, 4096 MiB, 8 max threads: 31.505530 seconds
+Argon2s, 4096 MiB, 8 max threads: 36.188340 seconds
+
