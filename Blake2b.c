@@ -1,31 +1,40 @@
 /**
-* @file
-* Ad hoc version of Blake2b 
+* @file Blake2b.c
+* Ad hoc version of Blake2b, purged of all the operations that are not required for the Argon2 specification
 */
 
 #include "Blake2b.h"
 
 // Constants definition
 
-//! @def length of a word
+/// @def WORD_LENGTH
+/// Length of the word used for workspace initialization, as well as compressed data storage
 #define WORD_LENGTH 64  
-//! @def number of rounds required     
+/// @def ROUNDS_NUMER
+/// Number of rounds in the blake2b compression function
 #define ROUNDS_NUMER 12   
-//! @def length of a block         
+/// @def BLOCK_LENGTH
+/// Length of a data block to be compressed      
 #define BLOCK_LENGTH 128 
-//! @def dimension of the workspace     
+/// @def WORKSPACE_LENGTH
+/// Dimension of the workspace used in the compression function, it is the size of a word, when expressed in octets of bytes   
 #define WORKSPACE_LENGTH 8  
 
-//! @def a type of a rotational shift
+/// @def R1
+/// Constant offset for the first rotational shift
 #define R1 32 
-//! @def a type of a rotational shift    
+/// @def R2
+/// Constant offset for the second rotational shift   
 #define R2 24
-//! @def a type of a rotational shift
+/// @def R3 
+///Constant offset for the third rotational shift
 #define R3 16
-//! @def a type of a rotational shift
+/// @def R4
+/// Constant offset for the fourth rotational shift
 #define R4 63
 
-//! @var 
+/// @var SIGMA 
+/// Set of permutations, one for each round, used to access the data in a non-linear way when deciding the order to compress them
 static const size_t SIGMA[12][16] = {
    { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
    { 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3 },
@@ -41,6 +50,8 @@ static const size_t SIGMA[12][16] = {
    { 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3 }
 };
 
+/// @var IV 
+/// Initialization vector
 static const uint64_t IV[8] = { 
     0x6A09E667F3BCC908, 0xBB67AE8584CAA73B,
     0x3C6EF372FE94F82B, 0xA54FF53A5F1D36F1,
@@ -48,8 +59,18 @@ static const uint64_t IV[8] = {
     0x1F83D9ABFB41BD6B, 0x5BE0CD19137E2179
 };
 
-// B2B_G [mixing function]
-
+/**
+ * @fn void B2B_G(uint64_t* v, int a, int b, int c, int d, uint64_t x, uint64_t y)
+ * Core of the blake2b compression function, takes a workspace v and scrambles four positions in
+ * it, specified by the four integers a,b,c,d, using the additional data contained in x and y.
+ * @param v     workspace for the scrambling, an array of 16 uint64_t
+ * @param a     the first position to scramble in v
+ * @param b     the second position to scramble in v
+ * @param c     the third position to scramble in v
+ * @param d     the fourth position to scramble in v
+ * @param x     additional data for the scrambling
+ * @param y     additional data for the scrambling
+ */
 void B2B_G(uint64_t* v, int a, int b, int c, int d, uint64_t x, uint64_t y){
 
     v[a] = v[a] + v[b] + x;
@@ -62,10 +83,13 @@ void B2B_G(uint64_t* v, int a, int b, int c, int d, uint64_t x, uint64_t y){
     v[b] = ROT_SHIFT((v[b]^v[c]) , R4);
 }
 
-/*
- * Main compression function of Blake2b, takes as input a workspace uint64_t h[8],
- * a data buffer uint64_t m[16], a 128-bit precision counter and a flag to differentiate
- * the last data block.
+/**
+ * @fn void B2B_F(uint64_t* h, uint64_t* m, uint64_t* t, int f )
+ * Main compression function of Blake2b, compresses the data contained in m into h
+ * @param h     a word of length WORD_LENGTH for workspace initialization and compressed data storage
+ * @param m     data block of length BLOCK_LENGTH, taken from the input data for blak2b
+ * @param t     the counter of the data offset, it is a 128 bits unsigned integer, encoded in little endian as an array of two uint64_t
+ * @param f     1 if this is the final block to be encoded, 0 otherwise
  */
 
 void B2B_F(uint64_t* h, uint64_t* m, uint64_t* t, int f ){
@@ -102,8 +126,15 @@ void B2B_F(uint64_t* h, uint64_t* m, uint64_t* t, int f ){
 
 }
 
-/*
- * Blake2b hash function. Takes an uint8_t data[data_size] and outputs an uint8_t digest[digest_size] 
+/**
+ * @fn void blake2b( uint8_t* digest, size_t digest_size, uint8_t* data, uint64_t data_size)
+ * Simplified version of the blake2b hash function. It divides the input data into blocks and then proceeds to repeatedly 
+ * compress them, xoring the result in h, an array of 64 bytes, then outputs the required amount of bytes from it.
+ * Unlike the original blake2b, this version does not accept a key, since it is unnecessary for Argon2 computation.
+ * @param digest        an array to store the digest
+ * @param digest_size   the number of required output bytes
+ * @param data          the input data to compress
+ * @param data_size     the size of said data, expressed in number of bytes
  */
 void blake2b( uint8_t* digest, size_t digest_size, uint8_t* data, uint64_t data_size){
 
@@ -133,7 +164,7 @@ void blake2b( uint8_t* digest, size_t digest_size, uint8_t* data, uint64_t data_
             t[1]++;  
     B2B_F(h,(uint64_t*)buffer,t,1);                                                     //  Apply compression 
 
-    memcpy(digest,h,digest_size);                                                 // Output the required digest_size bytes
+    memcpy(digest,h,digest_size);                                                       // Output the required digest_size bytes
 
 }
 

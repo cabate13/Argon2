@@ -1,17 +1,24 @@
-// Argon2 v1.3 : PHC release
-//      
-//      C implementation of the Argon2 memory hard function for password hashing and others applications
-//           
-//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
-//
+/**
+ * @file 
+ * Benchmark for comparison with the official phc release of Argon2, it uses the same parameters used in the official phc implementation, in order to have a consistent test.
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include "Argon2_body.h"
 
+/// @var types
+/// Used to store the names of Argon2 types for a nice formatted output
 const char* types[] = {"Argon2d","Argon2i","Argon2id","Argon2s"};
 
+/**
+ * @fn int main()
+ * Performs the benchmark, in particular we use the same parameters used in the official benchmark:             \n
+ * (°) Used memory: form 1 MiB up to 4 GiB;                                                                     \n
+ * (°) Degree of parallelization: from 1 to 8;                                                                  \n
+ * (°) ALl the four types of Argon2.                                                                            \n
+ */
 int main(){
 
 Argon2_arguments args;
@@ -37,11 +44,6 @@ Argon2_arguments args;
     args.K = K;
     args.X = X;
     args.size_X = 12;
-
-    // Fixed number of iterations: 3
-    // Test for memory from 1 MiB to 4 GiB,
-    // test for parallelism from 1 to 8 (doubling),
-    // test for the four different types of Argon2
 
     uint32_t memory = 1024;
 
