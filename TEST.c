@@ -1,14 +1,26 @@
-// Argon2 v1.3 : PHC release
-//      
-//      C implementation of the Argon2 memory hard function for password hashing and others applications
-//           
-//      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
-//
+/**
+ * @file test.c
+ * Test for the correctness of our implementation, runs a test for different parameters, considered critical:                                           \n
+ * (°) Simple test with p = 4 and m = 32;                                                                                                               \n
+ * (°) Test for p = 5 and m = 2601, so that p does not divide m, and the segment length is enough to require a second pseudo-random generation
+ * in Argon2i;                                                                                                                                          \n
+ * (°) Test for p = 4 and m = 65536, to test fairly large amounts of memory used;                                                                       \n
+ * (°) A final test using 4 GiB of memory, in order to test the memory handling.                                                                        \n
+ * Remark: there are no available test vectors for the Argon2ds type using version 1.9, since it has not been implemented.                              \n
+ * The fixed parameters for the test are:                                                                                                               \n
+ * Iterations: 3, Tag length: 32 bytes                                                                                                                  \n
+ * Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01                                        \n
+ * Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02                                                                                            \n
+ * Secret[8]: 03 03 03 03 03 03 03 03                                                                                                                   \n
+ * Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04                                                                                             \n
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include "Argon2_body.h"
 
+/// @var A2i_tags
+/// The results for the Argon2i tests, computed with the official version.
 uint8_t A2i_tags[3][32] = {
 
     {0xc8, 0x14, 0xd9, 0xd1, 0xdc, 0x7f, 0x37, 0xaa, 0x13, 0xf0, 0xd7, 0x7f, 0x24, 0x94, 0xbd, 0xa1, 0xc8, 0xde, 0x6b, 0x01, 0x6d, 0xd3, 0x88, 0xd2, 0x99, 0x52, 0xa4, 0xc4, 0x67, 0x2b, 0x6c, 0xe8},
@@ -18,6 +30,8 @@ uint8_t A2i_tags[3][32] = {
 
 };
 
+/// @var A2d_tags
+/// The results for the Argon2d tests, computed with the official version.
 uint8_t A2d_tags[3][32] = {
 
     {0x51, 0x2b, 0x39, 0x1b, 0x6f, 0x11, 0x62, 0x97, 0x53, 0x71, 0xd3, 0x09, 0x19, 0x73, 0x42, 0x94, 0xf8, 0x68, 0xe3, 0xbe, 0x39, 0x84, 0xf3, 0xc1, 0xa1, 0x3a, 0x4d, 0xb9, 0xfa, 0xbe, 0x4a, 0xcb},
@@ -26,6 +40,8 @@ uint8_t A2d_tags[3][32] = {
 
 };
 
+/// @var A2id_tags
+/// The results for the Argon2id tests, computed with the official version.
 uint8_t A2id_tags[3][32] = {
 
     {0x0d, 0x64, 0x0d, 0xf5, 0x8d, 0x78, 0x76, 0x6c, 0x08, 0xc0, 0x37, 0xa3, 0x4a, 0x8b, 0x53, 0xc9, 0xd0, 0x1e, 0xf0, 0x45, 0x2d, 0x75, 0xb6, 0x5e, 0xb5, 0x25, 0x20, 0xe9, 0x6b, 0x01, 0xe6, 0x59},
@@ -34,20 +50,14 @@ uint8_t A2id_tags[3][32] = {
 
 };
 
+/// @var memory_test
+/// The result for the test using 4 GiB of memory
 uint8_t memory_test[32] = {0x1f, 0x92, 0x78, 0x12, 0xd1, 0x19, 0x30, 0x74, 0x2f, 0x9a, 0x54, 0x5b, 0x7a, 0xce, 0xaf, 0xc4, 0x64, 0xb8, 0x43, 0x9d, 0xb9, 0x06, 0x1b, 0x01, 0x28, 0x82, 0xeb, 0x87, 0xe8, 0xd9, 0x3a, 0xa9};
 
-/** @file TEST.c
- * Test main, runs the four types of argon2 with the following inputs:
- *
- * Memory: 32/64/2^16 KiB, Iterations: 3, Parallelism: 4/5 lanes, Tag length: 32 bytes
- * Password[32]: 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 
- * Salt[16]: 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 02 
- * Secret[8]: 03 03 03 03 03 03 03 03 
- * Associated data[12]: 04 04 04 04 04 04 04 04 04 04 04 04 
- * 
- * and prints the resulting Tag
+/** 
+ * @fn int main()
+ * Test main, initializes parametrs for the tests, launches them and prints the resulting Tag and whether the test has been successful.
  */
-
 int main(){
 
     Argon2_arguments args;
