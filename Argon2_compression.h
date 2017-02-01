@@ -8,17 +8,20 @@
 #define A2_COMPRESSION
 
 /// @def A2D
-/// type number for Argon2d
+///      type number for Argon2d
 #define A2D 0
 /// @def A2I
-/// type number for Argon2i
+///      type number for Argon2i
 #define A2I 1
 /// @def A2ID
-/// type number for Argon2id
+///      type number for Argon2id
 #define A2ID 2
 /// @def A2DS
-/// type number for Argon2ds
+///      type number for Argon2ds
 #define A2DS 4
+/// @def A2_MATRIX_BLOCK_LENGTH
+///      size of data blocks in Argon2 matrix
+#define A2_MATRIX_BLOCK_LENGTH 1024
 
 #include "Blake2b.h"
 
@@ -64,7 +67,7 @@ void XOR_128(const uint64_t* X, const uint64_t* Y, uint64_t* res);
 #endif
 
 #if !defined TRUNC_32
-/// @def
-/// The 32-LSB of an uint64_t
+/// @def TRUNC_32
+///      The 32-LSB of an uint64_t
 #define TRUNC_32(m) (m & 0x00000000FFFFFFFF)
 #endif
