@@ -179,18 +179,16 @@ void finalize(Argon2_global_workspace* B, uint64_t* B_final){
 */
 void Argon2(Argon2_arguments* args, uint8_t* tag){
 
-
-
+	// Parameter checking
 	Argon2_global_workspace B;
-	if(Argon2_global_workspace_init(args->m, args->p, args->t, args->y, &B) == 1)
-		ERROR("A2B:: Unable to initialize global workspace.");
-
-	if(args->size_S<8 || args->p > 0xFFFFFF || args->tau<4 )
-                ERROR("A2B:: Parameters out of bounds");
-        if(args->m < args->p*8)
-                ERROR("A2B:: Pair (m,p) not consistent, 8*p < m.")
+	if(args->size_S<8 || args->tau<4 )
+                ERROR("A2B:: Parameters out of bounds: check if salt and tag length are correct.\nsalt size must be in [8 .. 2^32-1] and tau in [4 .. 2^32-1]");
         if(!((args->y == A2D) || (args->y == A2I) || (args->y == A2ID) || (args->y == A2DS))) 
-                ERROR("A2B:: Illegal type for Argon2, Valid types:\nArgon2d:  0\nArgon2i:  1\nArgon2id: 2\nArgon2ds: 4\n");
+                ERROR("A2B:: Illegal type for Argon2, Valid types:\nArgon2d:  0\nArgon2i:  1\nArgon2id: 2\nArgon2ds: 4");
+        if(args->t == 0)
+        	ERROR("A2B:: Illegal number of rounds.\nThe number of rounds must be in [1 .. 2^32-1]");
+	if(Argon2_global_workspace_init(args->m, args->p, args->t, args->y, &B) == 1)
+		ERROR("A2B:: Unable to initialize global workspace: check if m and p are consistent.\np must be in [1 .. 2^24-1] and m in [4*p .. 2^32-1]");
 
 	// Compute H0
 	uint8_t H0[64];

@@ -26,29 +26,29 @@
  *
  * - Mode 1: command line input: 											\n
  *  (°) --C 																\n
- *  (°) -P <password>														\n
- *  (°) -S <salt>															\n
- *  (°) [-K <secret>]														\n
- *  (°) [-X <associated data>]												\n
- *  (°) -p <degree of parallelization>										\n
- *  (°) -m <total memory usage in KiB>										\n
- *  (°) -t <total passes>													\n
- *  (°) -v <type of Argon2>													\n
- *  (°) -l <tag size>														\n
+ *  (°) -P password														    \n
+ *  (°) -S salt															    \n
+ *  (°) [-K secret]														    \n
+ *  (°) [-X associated data]												\n
+ *  (°) -p degree of parallelization										\n
+ *  (°) -m total memory usage in KiB										\n
+ *  (°) -t total passes													    \n
+ *  (°) -v type of Argon2													\n
+ *  (°) -l tag size														    \n
  *
  * - Mode 2: config file input:												\n
- *  (°) --F <filename> -P <password> [-X <associated data>]					\n
+ *  (°) --F filename -P password [-X associated data]					    \n
  *  
  * - File format:															\n
- *  (°) S_size: <size of salt>												\n
- *  (°) S: <salt>															\n
- *  (°) K_size: <size of secret data>  // optional							\n
- *  (°) K: <secret data>               // optional							\n	
- *  (°) p: <degree of parallelization>										\n
- *  (°) m: <total memory usage in KiB>										\n
- *  (°) t: <total passes>													\n
- *  (°) v: <type of Argon2>													\n
- *  (°) tau: <tag size>
+ *  (°) S_size: size of salt												\n
+ *  (°) S: salt															    \n
+ *  (°) K_size: size of secret data  // optional							\n
+ *  (°) K: secret data               // optional							\n	
+ *  (°) p: degree of parallelization										\n
+ *  (°) m: total memory usage in KiB										\n
+ *  (°) t: total passes													    \n
+ *  (°) v: type of Argon2													\n
+ *  (°) tau: tag size
  */
 
 
@@ -95,7 +95,7 @@
 
 /// @def TAKE_SCALAR_FROM_C_LINE
 ///      Takes a scalar from the command line argument and saves it in the correct position 'arg', then notes that it was taken as input
-#define TAKE_SCALAR_FROM_C_LINE(arg,type,i_arg){if(sscanf(argv[i+1],type,&arg)!=1 || check_input_received[i_arg])                       \
+#define TAKE_SCALAR_FROM_C_LINE(arg,i_arg){if(sscanf(argv[i+1],"%u",&arg)!=1 || check_input_received[i_arg])                       \
                                                 return MALFORMED_INPUT; check_input_received[i_arg]=1;} 
 
 /// @def TAKE_ARRAY_FROM_C_LINE
@@ -201,7 +201,7 @@ int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint
                 TAKE_SCALAR_FROM_FILE(args->p,"p: %u\n",4);
                 break;
             case 'm':
-                TAKE_SCALAR_FROM_FILE(args->m,"m: %llu\n",5);
+                TAKE_SCALAR_FROM_FILE(args->m,"m: %u\n",5);
                 break;
             // The cases t and tau are handled togheter in an unique way, since they have the same starting letter
             case 't':{
@@ -280,19 +280,19 @@ int command_line_input_sanitization(int argc, char* argv[], Argon2_arguments* ar
                 TAKE_ARRAY_FROM_C_LINE(args->X,args->size_X,9);
             break;
             case 'p':
-                TAKE_SCALAR_FROM_C_LINE(args->p,"%u",4);
+                TAKE_SCALAR_FROM_C_LINE(args->p,4);
                 break;
             case 'm':
-                TAKE_SCALAR_FROM_C_LINE(args->m,"%llu",5);
+                TAKE_SCALAR_FROM_C_LINE(args->m,5);
                 break;
             case 't':
-                TAKE_SCALAR_FROM_C_LINE(args->t,"%u",6);
+                TAKE_SCALAR_FROM_C_LINE(args->t,6);
                 break;
             case 'v':
-                TAKE_SCALAR_FROM_C_LINE(args->y,"%u",7);
+                TAKE_SCALAR_FROM_C_LINE(args->y,7);
                 break;
             case 'l':
-                TAKE_SCALAR_FROM_C_LINE(args->tau,"%u",8);
+                TAKE_SCALAR_FROM_C_LINE(args->tau,8);
                 break;
             default:
                 return MALFORMED_INPUT;
