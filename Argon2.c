@@ -29,7 +29,7 @@
  *  (°) -P <password>														\n
  *  (°) -S <salt>															\n
  *  (°) [-K <secret>]														\n
- *  (°) -X <associated data>												\n
+ *  (°) [-X <associated data>]												\n
  *  (°) -p <degree of parallelization>										\n
  *  (°) -m <total memory usage in KiB>										\n
  *  (°) -t <total passes>													\n
@@ -37,7 +37,7 @@
  *  (°) -l <tag size>														\n
  *
  * - Mode 2: config file input:												\n
- *  (°) --F <filename> -P <password> -X <associated data>					\n
+ *  (°) --F <filename> -P <password> [-X <associated data>]					\n
  *  
  * - File format:															\n
  *  (°) S_size: <size of salt>												\n
@@ -132,7 +132,7 @@
 /// @var man
 /// 	 manual given via std out when no input is guven
 const char* man = 
-"*** Argon2 usage: ***\n\nInput from command line: [-K is the only optional argument]\n  ./Argon2 --C \n  -P <password>\n  -S <salt>\n  -X <associated data>\n  -p <parallelization degree>\n  -m <memory usage>\n  -t <total passes>\n  -v <type of Argon2>\n  -l <tag size>\n  [-K <secret>]\n\nInput from file: [generate a template with ./Argon2 --T]\n  ./Argon2 --F <filename> -P <password> -X <associated data>\n\n";
+"*** Argon2 usage: ***\n\nInput from command line: [arguments in brackets are optional]\n  ./Argon2 --C \n  -P <password>\n  -S <salt>\n  -p <parallelization degree>\n  -m <memory usage>\n  -t <total passes>\n  -v <type of Argon2>\n  -l <tag size>\n  [-X <associated data>]\n  [-K <secret>]\n\nInput from file: [generate a template with ./Argon2 --T]\n  ./Argon2 --F <filename> -P <password> [-X <associated data>]\n\n";
 /// @var template  
 ///  	 apposite template for the file input mode Argon2 configuration file 
 const char* template = 

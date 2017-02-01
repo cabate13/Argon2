@@ -7,9 +7,9 @@
 
 
 #define A2_MATRIX
-//! @def size of data blocks in Argon2 matrix
-#define A2_MATRIX_BLOCK_LENGTH 1024
-//! @def number of pairs for the 2i version
+
+/// @def A2I_PAIRS_NUMBER
+///      number of pairs for the 2i version
 #define A2I_PAIRS_NUMBER 128
 
 #include "Argon2_compression.h"

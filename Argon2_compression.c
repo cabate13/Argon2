@@ -59,24 +59,49 @@ void P(uint64_t* S){
 
 }
 
+void A2DS_F(uint64_t* Q){
 
-/// @def A2DS_F
-/// Round function for the S-Box initialization Argon2ds
-#define A2DS_F {for (int k = 0; k < 8; ++k) P(block_00+16*k);}
+    for (int i = 0; i < 8; ++i)             // Applies the permutation P to Q row-wise
+        P(Q+16*i);
+
+    uint64_t column[16];                    // Applies the permutation P to Q column-wise:
+    for (int i = 0; i < 8; ++i){
+
+        for (int j = 0; j < 8; ++j){
+
+            column[2*j] = Q[16*j+2*i];      // Computes the i-th column of Q and stores        
+            column[2*j+1] = Q[16*j+1+2*i];  // it in 'column'
+
+        }
+
+        P(column);                           // Applies P 
+
+        for (int j=0; j<8; ++j){
+
+            Q[16*j+2*i] = column[2*j];       // Writes the result in the correct position
+            Q[16*j+1+2*i] = column[2*j+1];
+
+        }
+
+    }
+
+}
 
 /*
 * @fn void S_Box_Inizialization(uint64_t* block_00, uint64_t* S)
-* Inizialization of the s box for the 2ds version
+* Inizialization of the S-box for the 2ds version
 * @param block_00   pointer to the block in position [0,0] of the matrix B
 * @param S          pointer to the image of the S box 
 */
 void S_Box_Inizialization(uint64_t* block_00, uint64_t* S){
 
+    uint64_t seed[A2_MATRIX_BLOCK_LENGTH/sizeof(uint64_t)];
+    memcpy(seed,block_00,A2_MATRIX_BLOCK_LENGTH);
     for (int i = 0; i < 8 ; ++i)
     {
-        A2DS_F;
-        A2DS_F;
-        memcpy(S+128*i, block_00, 128*sizeof(uint64_t)); 
+        A2DS_F(seed);
+        A2DS_F(seed);
+        memcpy(S+(A2_MATRIX_BLOCK_LENGTH/sizeof(uint64_t))*i, seed, A2_MATRIX_BLOCK_LENGTH); 
     }
 
 }
@@ -92,10 +117,10 @@ uint64_t Tau(uint64_t W, uint64_t* S){
     uint64_t y;
     uint64_t z;
 
-    for (int i = 0; i < 96; ++i)
-    {
-        y = S[W & 0x1FF]; // i primi 9 bit di W
-        z = S[512 + ((W >> 32) & 0x1FF)]; // i bit da 32 a 40 di W
+    for (int i = 0; i < 96; ++i){
+        
+        y = S[W & 0x1FF];                   // i primi 9 bit di W
+        z = S[512 + ((W >> 32) & 0x1FF)];   // i bit da 32 a 40 di W
 
         W = (((W & 0x00000000FFFFFFFF)*(W >> 32)) +  y) ^ z;
 
@@ -136,10 +161,10 @@ void A2DS_compression(uint64_t* R, uint64_t* Z, uint64_t* S){
  */
 void A2_G(const uint64_t* X, const uint64_t* Y, uint64_t* result, uint64_t* S, uint8_t type){
 
-    uint64_t R[128];                        // XOR of the two input arrays to compute
+    uint64_t R[A2_MATRIX_BLOCK_LENGTH/8];   // XOR of the two input arrays to compute
     XOR_128(X,Y,R);                         // the working matrix R, which is seen as a 
                                             // 8x8 matrix of elements uint64_t[2]
-    uint64_t Q[128];                        // Stores R in Q for future computation
+    uint64_t Q[A2_MATRIX_BLOCK_LENGTH/8];   // Stores R in Q for future computation
     memcpy(Q,R,sizeof(R));
 
     for (int i = 0; i < 8; ++i)             // Applies the permutation P to Q row-wise
