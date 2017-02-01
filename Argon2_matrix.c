@@ -16,7 +16,7 @@
 int Argon2_global_workspace_init(uint32_t m, uint32_t p, uint32_t t, uint32_t x, Argon2_global_workspace* B){
 
         // Matrix initialization
-        if(p == 0 || p > 0xFFFFFF || m < 8*p)
+        if(p == 0 || p > 0xFFFFFF || m < 8*p )
                 return 1;
 
         B->p = p;

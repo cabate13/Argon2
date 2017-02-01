@@ -1,0 +1,74 @@
+/*! \mainpage Installation Page
+ *
+ * \section intro_sec Introduction
+ *
+ * Argon2 v1.3 : PHC release
+ *     
+ *      C implementation of the Argon2 memory hard function for password hashing and others applications
+ *           
+ *      Credits to:  Alex Biryukov, Daniel Dinu and Dimitry Khovratovich
+ *
+ * \section install_sec Installation
+ *  
+ * We provide an easy-to-use makefile for the compilation of the Argon2 function and the related utilities.
+ *
+ * \subsection argon2 Argon2:
+ * 
+ * The Argon2 executable can be created with a simple 
+ *
+ *      $ make
+ *
+ * This operation compiles an executable Argon2, that accepts both command line arguments and file arguments, in the form of a configuration 
+ * file. A manual for Argon2 is available upon request, executing it with no inputs:
+ *
+ *      ./Argon2
+ *
+ * \subsection test Test Utility
+ *
+ * It is possible to compile a test utility that compares the output of this implementation of Argon2 with the official version of Argon2, 
+ * available at https://github.com/P-H-C/phc-winner-argon2. In order to compile this version run
+ *
+ *      $ make test
+ *
+ * The compiled executable is called 'test', it will run the test and print the results in std out. The test should take less than a minute.
+ *
+ * \subsection bench Benchmark
+ * 
+ * The benchmark is implemented using the same parameters of the benchmark that can be found in the official version. In order to compile it, 
+ * run:
+ *
+ *      $ make bench
+ *
+ * The compiled executable is called 'bench'. It prints the results in std out, but it is recommended to dump them in a file, since its output
+ * is fairly long. The execution of the benchmark should require few minutes.
+ *
+ * \subsection bad_memory Testing for memory leaks
+ *
+ * In order to test for memory leaks, we added two rules to the makefile, i.e.:
+ *
+ *      $ make bad_memory
+ *      $ make test_bad_memory
+ *      
+ * They compile, respectively, a version of the Argon2 main executable and of the test executable, with the flags required to perform an 
+ * analysis of memory leaks using Valgrind.
+ *
+ * \subsection clean Cleaning the work directory
+ * 
+ * In order to clean the work directory from object files and other executables created, except the main Argon2 executable, run:
+ * 
+ *      $ make clean
+ *
+ * If you want to delete every file created during previous compilations, including the Argon2 main executable, use:
+ *
+ *      $ make purge
+ *
+ * \subsection flags Additional Flags
+ *
+ * It is possible to specify two additional modalities for compilation, using the additional variables 'debug' and 'follow_specs'. 
+ * Executing any of the previous rules specifying 'debug=1', compiles a version of the executable with a specific table of symbols 
+ * for 'gdb', the GNU debugger. On the other hand, specifying 'follow_specs=1' will compile an implementation of Argon2 strictly following
+ * the specifications, based on a claimed implementation issue that can be found in https://github.com/P-H-C/phc-winner-argon2, in the 
+ * 'Issues' section and on our observation on other two points of the specification that may disagree with the official implementation.
+ * 
+ *
+ */

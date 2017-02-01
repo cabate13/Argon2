@@ -6,7 +6,7 @@
 #define A2_BODY
 
 /// @def H0_LENGTH
-/// length of the initial seed for first block computation
+///      length of the initial seed for first block computation
 #define H0_LENGTH 64
 
 #include "Argon2_matrix.h"
