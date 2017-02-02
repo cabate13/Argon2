@@ -1,6 +1,6 @@
 debug = 0
 follow-specifications = 0
-CFLAGS += -fopenmp -O3
+CFLAGS += -fopenmp
 BAD_MEMORY_FLAGS = -g -std=c99
 CC = gcc
 UNAME_S := $(shell uname -s)
@@ -10,6 +10,8 @@ DST = Argon2
 # Handle debug version
 ifeq ($(debug), 1)
 	CFLAGS += -ggdb
+else
+	CFLAGS += -O3
 endif
 # Handle OS compilation [use gcc-6 from homebrew]
 ifeq ($(UNAME_S),Darwin)
