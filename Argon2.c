@@ -37,11 +37,11 @@
  *  (°) -l tag size														    \n
  *
  * - Mode 2: config file input:												\n
- *  (°) --F filename -P password [-X associated data]					    \n
+ *  (°) --F filename -P password -S salt            					    \n
  *  
  * - File format:															\n
- *  (°) S_size: size of salt												\n
- *  (°) S: salt															    \n
+ *  (°) X_size: size of the associated data									\n
+ *  (°) X: associated data													\n
  *  (°) K_size: size of secret data  // optional							\n
  *  (°) K: secret data               // optional							\n	
  *  (°) p: degree of parallelization										\n
@@ -91,7 +91,7 @@
 
 /// @def FREE_MEMORY_ON_BAD_INPUT
 ///      Frees eventually allocated memory if the input is incorrect.
-#define FREE_MEMORY_ON_BAD_INPUT {if(check_input_received[3])free(args->S);if(check_input_received[12])free(args->K);}
+#define FREE_MEMORY_ON_BAD_INPUT {if(check_input_received[10])free(args->S);if(check_input_received[12])free(args->K);}
 
 /// @def TAKE_SCALAR_FROM_C_LINE
 ///      Takes a scalar from the command line argument and saves it in the correct position 'arg', then notes that it was taken as input.
@@ -132,11 +132,11 @@
 /// @var man
 /// 	 Manual given via std out when no input is guven
 const char* man = 
-"*** Argon2 usage: ***\n\nInput from command line: [arguments in brackets are optional]\n  ./Argon2 --C \n  -P <password>\n  -S <salt>\n  -p <parallelization degree>\n  -m <memory usage>\n  -t <total passes>\n  -v <type of Argon2>\n  -l <tag size>\n  [-X <associated data>]\n  [-K <secret>]\n\nInput from file: [generate a template with ./Argon2 --T]\n  ./Argon2 --F <filename> -P <password> [-X <associated data>]\n\n";
+"*** Argon2 usage: ***\n\nInput from command line: [arguments in brackets are optional]\n  ./Argon2 --C \n  -P <password>\n  -S <salt>\n  -p <parallelization degree>\n  -m <memory usage>\n  -t <total passes>\n  -v <type of Argon2>\n  -l <tag size>\n  [-X <associated data>]\n  [-K <secret>]\n\nInput from file: [generate a template with ./Argon2 --T]\n  ./Argon2 --F <filename> -P <password> -S <salt>\n\n";
 /// @var template  
 ///  	 Template for the file input mode Argon2 configuration file 
 const char* template = 
-"# This is a template for the Argon2 input file. Lines starting with # will be ignored\nS_size: <size of salt>\nS: <salt>\nK_size: <size of secret data>\nK: <secret data>\np: <degree of parallelization>\nm: <total memory usage in KiB>\nt: <total passes>\nv: <type of Argon2>\ntau: <tag size>";
+"# This is a template for the Argon2 input file. Lines starting with # will be ignored\nX_size: <size of associated data>\nX: <associated data>\nK_size: <size of secret data>\nK: <secret data>\np: <degree of parallelization>\nm: <total memory usage in KiB>\nt: <total passes>\nv: <type of Argon2>\ntau: <tag size>";
 
 /**
 *  @fn int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint8_t* check_input_received)
@@ -159,8 +159,8 @@ int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint
             case 'P':
                 TAKE_ARRAY_FROM_C_LINE(args->P,args->size_P,0);
                 break;
-            case 'X':
-                TAKE_ARRAY_FROM_C_LINE(args->X,args->size_X,9);
+            case 'S':
+                TAKE_ARRAY_FROM_C_LINE(args->S,args->size_S,2);
                 break;
             default:
                 return MALFORMED_INPUT;
@@ -191,8 +191,8 @@ int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint
             case '#':
                 // Do nothing, comment line 
                 break;
-            case 'S':
-                TAKE_ARRAY_FROM_FILE(args->S,args->size_S,"S_size: %u\n",2);
+            case 'X':
+                TAKE_ARRAY_FROM_FILE(args->X,args->size_X,"X_size: %u\n",9);
                 break;
             case 'K':
                 TAKE_ARRAY_FROM_FILE(args->K,args->size_K,"K_size: %u\n",11);
@@ -205,8 +205,8 @@ int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint
                 break;
             // The cases t and tau are handled togheter in an unique way, since they have the same starting letter
             case 't':{
-                if((sscanf(buffer, "t: %u\n",&args->t) != 1)|| check_input_received[8]){
-                    if((sscanf(buffer, "tau: %u",&args->tau) != 1)|| check_input_received[10]){
+                if((sscanf(buffer, "t: %u\n",&args->t) != 1)|| check_input_received[6]){
+                    if((sscanf(buffer, "tau: %u",&args->tau) != 1)|| check_input_received[8]){
                         FREE_MEMORY_ON_BAD_INPUT;
                         return MALFORMED_INPUT_FILE; 
                     }
@@ -412,8 +412,8 @@ int main(int argc, char* argv[]){
 			if(argv[1][2] == 'F'){
 	            if(args.size_K)
 	                free(args.K);
-	            if(args.size_S)
-	                free(args.S);
+	            if(args.size_X)
+	                free(args.X);
 			}
 
         }break;
