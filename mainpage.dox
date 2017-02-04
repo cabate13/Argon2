@@ -12,7 +12,7 @@
  *  
  * We provide an easy-to-use makefile for the compilation of the Argon2 function and the related utilities.
  *
- * \subsection argon2 Argon2:
+ * \subsection argon2 Argon2
  * 
  * The Argon2 executable can be created with a simple 
  *

@@ -45,15 +45,15 @@ void S_Box_Inizialization(uint64_t* block_00, uint64_t* S);
 void A2_G(const uint64_t* X, const uint64_t* Y, uint64_t* result, uint64_t* S, uint8_t type);
 
 /**
-* @fn void H_prime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
+* @fn void H_prime(uint8_t*X, uint32_t size_X, uint32_t tau, uint8_t* digest)
 * Variable-lenght hash function based on Blake2b
 * tau is the lenght of the digest
 * @param X         pointer to the input of Argon2 hash function 
-* @param sizex     size of the input
+* @param size_X     size of the input
 * @param tau       length of the digest
 * @param digest    pointer to the resulting digest
 */ 
-void H_prime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest);
+void H_prime(uint8_t*X, uint32_t size_X, uint32_t tau, uint8_t* digest);
 
 /**
 * @fn void XOR_128(const uint64_t* X, const uint64_t* Y, uint64_t* res)
