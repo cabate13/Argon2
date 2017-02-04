@@ -199,30 +199,30 @@ void A2_G(const uint64_t* X, const uint64_t* Y, uint64_t* result, uint64_t* S, u
 }
 
 /*
- * @fn void H_prime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest)
+ * @fn void H_prime(uint8_t*X, uint32_t size_X, uint32_t tau, uint8_t* digest)
  * Variable-lenght hash function based on Blake2b. 
  * @param X         pointer to the input of Argon2 hash function 
- * @param sizex     size of the input
+ * @param size_X     size of the input
  * @param tau       length of the digest
  * @param digest    pointer to the resulting digest
  */
-void H_prime(uint8_t*X, uint32_t sizeX, uint32_t tau, uint8_t* digest){
+void H_prime(uint8_t*X, uint32_t size_X, uint32_t tau, uint8_t* digest){
 
     // Compute tau || X
     uint8_t* t_cat_X;
-    t_cat_X = (uint8_t*) malloc(sizeX+4);
+    t_cat_X = (uint8_t*) malloc(size_X+4);
     memcpy(t_cat_X, &tau, 4);
-    memcpy(t_cat_X+4, X, sizeX);
+    memcpy(t_cat_X+4, X, size_X);
 
     if(tau <= 64)
-            blake2b(digest,tau,t_cat_X,sizeX+4);            // If tau <= 64, blake2b is enough
+            blake2b(digest,tau,t_cat_X,size_X+4);           // If tau <= 64, blake2b is enough
 
     else{                                                   // Otherwise, we use repeated evaluations of Blake2b
 
             uint32_t r = tau/32 + (tau%32 != 0) - 2;        //  Compute the required evaluations
             uint8_t V[64];
 
-            blake2b(V,64,t_cat_X, sizeX+4);                 //  Apply blake2b to tau||X to compute V_1
+            blake2b(V,64,t_cat_X, size_X+4);                 //  Apply blake2b to tau||X to compute V_1
             memcpy(digest, V, 32);
 
             for (int i = 1; i < r; ++i){

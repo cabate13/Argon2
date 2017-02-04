@@ -17,7 +17,8 @@ const char* types[] = {"Argon2d","Argon2i","Argon2id","Argon2s"};
  * Performs the benchmark, in particular we use the same parameters used in the official benchmark:             \n
  * (°) Used memory: form 1 MiB up to 4 GiB;                                                                     \n
  * (°) Degree of parallelization: from 1 to 8;                                                                  \n
- * (°) ALl the four types of Argon2.                                                                            \n
+ * (°) All the four types of Argon2.                                                                            \n
+ * @hidecallgraph
  */
 int main(){
 

@@ -57,6 +57,7 @@ uint8_t memory_test[32] = {0x1f, 0x92, 0x78, 0x12, 0xd1, 0x19, 0x30, 0x74, 0x2f,
 /** 
  * @fn int main()
  * Test main, initializes parametrs for the tests, launches them and prints the resulting Tag and whether the test has been successful.
+ * @hidecallgraph
  */
 int main(){
 

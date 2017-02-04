@@ -57,32 +57,32 @@
 #include "Argon2_body.h"
 
 /// @def NO_INPUT_GIVEN 
-/// 	 no input is given 
+/// 	 No input was given.
 #define NO_INPUT_GIVEN 1
 /// @def MALFORMED_INPUT
-///		 input is not given in the correct form
+///		 Command line input was not given in the correct form.
 #define MALFORMED_INPUT 2
 /// @def MISSING_PARAMETER
-///		 one of the mandatory parameter is missing
+///		 One of the mandatory parameter is missing.
 #define MISSING_PARAMETER 3
 /// @def NON_VALID_INPUT_FILE
-///		 the input file is not valid
+///		 The input file could not be read.
 #define NON_VALID_INPUT_FILE 4
 /// @def MALFORMED_INPUT_FILE
-///		 the input file is not given in the correct form
+///		 The input file is not given in the correct form.
 #define MALFORMED_INPUT_FILE 5
 /// @def GENERATE_TEMPLATE
-///		 prints a template for an Argon2 configuration file
+///		 The template has been generated correctly.
 #define GENERATE_TEMPLATE 6
 /// @def UNABLE_TO_WRITE_TEMPLATE
-///		 not possibile to print the template
+///		 It was not possibile to print the template.
 #define UNABLE_TO_WRITE_TEMPLATE 7
 /// @def SUCCESS
-///		 all parameters have been given in input in the correct form, computation can start
+///		 All parameters have been given in input in the correct form, so the computation of Argon2 can be started.
 #define SUCCESS 0
 
 /// @def PRINT_ARG_S
-///		 Prints the arguments passed to Argon2
+///		 Prints the arguments passed to Argon2.
 #define PRINT_ARG_S {printf("Password: ");for(int i = 0;i<args.size_P;i++)printf("%c",args.P[i]);printf("\n");\
                      printf("Salt: ");for(int i = 0;i<args.size_S;i++)printf("%c",args.S[i]);printf("\n");\
                      printf("Secret: ");for(int i = 0;i<args.size_K;i++)printf("%c",args.K[i]);printf("\n");\
@@ -90,16 +90,16 @@
                      printf("tau: %u, p: %u, m: %u, t: %u, y: %u\n",args.tau, args.p, args.m, args.t, args.y);}
 
 /// @def FREE_MEMORY_ON_BAD_INPUT
-///      Frees eventually allocated memory if the input is incorrect
+///      Frees eventually allocated memory if the input is incorrect.
 #define FREE_MEMORY_ON_BAD_INPUT {if(check_input_received[3])free(args->S);if(check_input_received[12])free(args->K);}
 
 /// @def TAKE_SCALAR_FROM_C_LINE
-///      Takes a scalar from the command line argument and saves it in the correct position 'arg', then notes that it was taken as input
+///      Takes a scalar from the command line argument and saves it in the correct position 'arg', then notes that it was taken as input.
 #define TAKE_SCALAR_FROM_C_LINE(arg,i_arg){if(sscanf(argv[i+1],"%u",&arg)!=1 || check_input_received[i_arg])                       \
                                                 return MALFORMED_INPUT; check_input_received[i_arg]=1;} 
 
 /// @def TAKE_ARRAY_FROM_C_LINE
-///      Takes an array from the command line argument, stores a pointer to it int arguments and notes it size, then notes that it was taken as input
+///      Takes an array from the command line argument, stores a pointer to it int arguments and notes it size, then notes that it was taken as input.
 #define TAKE_ARRAY_FROM_C_LINE(array,size,i_arg){if(check_input_received[i_arg])return MALFORMED_INPUT;array = argv[i+1]; size = strlen(argv[i+1]);\
                                                  check_input_received[i_arg] = 1;check_input_received[i_arg+1] = 1;}
 
@@ -130,17 +130,17 @@
                                 free(data_buffer);}                                                                     
 
 /// @var man
-/// 	 manual given via std out when no input is guven
+/// 	 Manual given via std out when no input is guven
 const char* man = 
 "*** Argon2 usage: ***\n\nInput from command line: [arguments in brackets are optional]\n  ./Argon2 --C \n  -P <password>\n  -S <salt>\n  -p <parallelization degree>\n  -m <memory usage>\n  -t <total passes>\n  -v <type of Argon2>\n  -l <tag size>\n  [-X <associated data>]\n  [-K <secret>]\n\nInput from file: [generate a template with ./Argon2 --T]\n  ./Argon2 --F <filename> -P <password> [-X <associated data>]\n\n";
 /// @var template  
-///  	 apposite template for the file input mode Argon2 configuration file 
+///  	 Template for the file input mode Argon2 configuration file 
 const char* template = 
 "# This is a template for the Argon2 input file. Lines starting with # will be ignored\nS_size: <size of salt>\nS: <salt>\nK_size: <size of secret data>\nK: <secret data>\np: <degree of parallelization>\nm: <total memory usage in KiB>\nt: <total passes>\nv: <type of Argon2>\ntau: <tag size>";
 
 /**
 *  @fn int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint8_t* check_input_received)
-*  File input sanitization
+*  Performs sanitization of an input from file.
 *  @param argc  argc from the main 
 *  @param argv  argv form the main 
 *  @param args 	the argument for Argon2 to be inizialized
@@ -252,7 +252,7 @@ int file_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint
 
 /**
 *  @fn int command_line_input_sanitization(int argc, char* argv[], Argon2_arguments* args, uint8_t* check_input_received)
-*  Command line input sanitization
+*  Performs input sanitization when acquiring input from command line.
 *  @param argc 	from the main
 *  @param argv	from the main
 *  @param args 	the argument for Argon2 to be inizialized
@@ -322,12 +322,13 @@ int command_line_input_sanitization(int argc, char* argv[], Argon2_arguments* ar
 }
 
 /**
-*	@fn int sanitize_input(int argc, char* argv[], Argon2_arguments* args)
-*  	Checks the type of input provided (command line v.s. file) and calls the appropriate handler
-*	@param argc  from the main
-*  	@param argv	 from the main
-*  	@param args  the argument for Argon2 to be inizialized
-*/
+ *	@fn int sanitize_input(int argc, char* argv[], Argon2_arguments* args)
+ *  Checks the type of input provided (command line v.s. file) and calls the appropriate handler.
+ *	@param argc  from the main
+ *  @param argv	 from the main
+ *  @param args  the argument for Argon2 to be inizialized
+ *  @hidecallgraph
+ */
 int sanitize_input(int argc, char* argv[], Argon2_arguments* args){
 
         // Array used to record the received arguments: order defined in the file intestation
@@ -362,10 +363,11 @@ int sanitize_input(int argc, char* argv[], Argon2_arguments* args){
 
 }
 
-/*
-* 	@fn int main(int argc, char* argv[])
-* 	Inizialization and error handling
-*/
+/**
+ * 	@fn int main(int argc, char* argv[])
+ *  Sanitizes input and uses it to initialize Argon2 arguments
+ *  @hidecallgraph
+ */
 int main(int argc, char* argv[]){
 
     Argon2_arguments args;        
