@@ -135,19 +135,16 @@ uint64_t Argon2_indexing_mapping(Argon2_local_workspace* arg, Argon2_global_work
                                                                                 // Compute R, set of referenceable blocks 
         if(B->r == 0){                                                          // First step
 
-                if(B->s == 0){                                                  // First slice
-                        referenceable_blocks = arg->c - 1;                      //   All computed blocks until now
-                        l = arg->l;
-                }
-                else{                                                           // Successive Slices
-                        if(l == arg->l)                                         //   Same lane
-                                referenceable_blocks = B->s*B->segment_length   //     all blocks computed in lane but not overwritten
-                                + (arg->c % B->segment_length) - 1;             //     excluded B[i][j-1]
-                        else                                                    //   Different lanes
-                                referenceable_blocks = B->s*B->segment_length   //     last s comuted segments
-                                - ((arg->c % B->segment_length) == 0);          //     excluded the last element, if c is first of the
+                if(B->s == 0)                                                   // First slice:
+                        l = arg->l;                                             //   bounded to be on the same lane
+                                                                                // Successive Slices
+                if(l == arg->l)                                                 //   Same lane
+                        referenceable_blocks = arg->c - 1;                      //     all blocks computed in lane but not overwritten
+                                                                                //     excluded B[i][j-1]
+                else                                                            //   Different lanes
+                        referenceable_blocks = B->s*B->segment_length           //     last s comuted segments
+                        - ((arg->c % B->segment_length) == 0);                  //     excluded the last element, if c is first of the
                                                                                 //     slice
-                }
                 first_referenceable_block = 0;                                  // In any case, start from the beginning of the lane
 
         }else{                                                                  // Successive steps
