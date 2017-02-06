@@ -7,10 +7,16 @@
 #include <stdio.h>
 #include <time.h>
 #include "Argon2_body.h"
+/**
+ * @def MEMORY_ROOF
+ *      Defines the memory roof for benchmark, you should set it to 12 if you have less than 4 GiB of RAM
+ *      Default value: 13
+ */
+#define MEMORY_ROOF 13
 
 /// @var types
 /// Used to store the names of Argon2 types for a nice formatted output
-const char* types[] = {"Argon2d","Argon2i","Argon2id","Argon2s"};
+const char* types[] = {"Argon2d","Argon2i","Argon2id","Argon2ds"};
 
 /**
  * @fn int main()
@@ -48,7 +54,7 @@ Argon2_arguments args;
 
     uint32_t memory = 1024;
 
-    for(int i = 0; i<13;i++){
+    for(int i = 0; i<MEMORY_ROOF;i++){
 
         uint32_t parallelism = 1;
 

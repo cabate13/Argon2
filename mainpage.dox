@@ -31,6 +31,9 @@
  *      $ make test
  *
  * The compiled executable is called 'test', it will run the test and print the results in std out. The test should take less than a minute.
+ * Remark. If you have less than 4 GiB of RAM available, you should comment the last test in the test.c file. The portion of code to be 
+ * commented is the marked portion at the end of the main function. The test will run nevertheless, but it may slow down or freeze your PC for
+ * a while.
  *
  * \subsection bench Benchmark
  * 
@@ -41,6 +44,8 @@
  *
  * The compiled executable is called 'bench'. It prints the results in std out, but it is recommended to dump them in a file, since its output
  * is fairly long. The execution of the benchmark should require few minutes.
+ * Remark. If you have less than 4 GiB of available RAM, you should change the MEMORY_ROOF macro in the file bench.c before executing the 
+ * benchmark, otherwise you could encounter problems.
  *
  * \subsection bad_memory Testing for memory leaks
  *
