@@ -127,7 +127,7 @@ int main(){
     printf("tag: ");
     for(int i = 0;i < args.tau; i++)
         printf("%02X ", tag[i]);
-    printf("\n");
+    printf("\nakt: ");
     for(int i = 0;i < args.tau; i++)
         printf("%02X ", A2id_tags[test_counter][i]);
     if(!strncmp(A2id_tags[test_counter],tag,args.tau))
@@ -159,7 +159,7 @@ int main(){
     printf("tag: ");
     for(int i = 0;i < args.tau; i++)
             printf("%02X ", tag[i]);
-    printf("\n");
+    printf("\nkat: ");
     for(int i = 0;i < args.tau; i++)
         printf("%02X ", A2d_tags[test_counter][i]);
     if(!strncmp(A2d_tags[test_counter],tag,args.tau))
@@ -173,7 +173,7 @@ int main(){
     printf("tag: ");
     for(int i = 0;i < args.tau; i++)
             printf("%02X ", tag[i]);
-    printf("\n");
+    printf("\nkat: ");
     for(int i = 0;i < args.tau; i++)
         printf("%02X ", A2i_tags[test_counter][i]);
     if(!strncmp(A2i_tags[test_counter],tag,args.tau))
@@ -187,7 +187,7 @@ int main(){
     printf("tag: ");
     for(int i = 0;i < args.tau; i++)
             printf("%02X ", tag[i]);
-    printf("\n");
+    printf("\nkat: ");
     for(int i = 0;i < args.tau; i++)
         printf("%02X ", A2id_tags[test_counter][i]);
     if(!strncmp(A2id_tags[test_counter],tag,args.tau))
@@ -220,7 +220,7 @@ int main(){
     printf("tag: ");
     for(int i = 0;i < args.tau; i++)
             printf("%02X ", tag[i]);
-    printf("\n");
+    printf("\nkat: ");
     for(int i = 0;i < args.tau; i++)
         printf("%02X ", A2d_tags[test_counter][i]);
     if(!strncmp(A2d_tags[test_counter],tag,args.tau))
@@ -234,7 +234,7 @@ int main(){
     printf("tag: ");
     for(int i = 0;i < args.tau; i++)
             printf("%02X ", tag[i]);
-    printf("\n");
+    printf("\nkat: ");
     for(int i = 0;i < args.tau; i++)
         printf("%02X ", A2i_tags[test_counter][i]);
     if(!strncmp(A2i_tags[test_counter],tag,args.tau))
@@ -248,7 +248,7 @@ int main(){
     printf("tag: ");
     for(int i = 0;i < args.tau; i++)
             printf("%02X ", tag[i]);
-        printf("\n");
+    printf("\nkat: ");
     for(int i = 0;i < args.tau; i++)
         printf("%02X ", A2id_tags[test_counter][i]);
     if(!strncmp(A2id_tags[test_counter],tag,args.tau))
@@ -263,7 +263,8 @@ int main(){
     for(int i = 0;i < args.tau; i++)
             printf("%02X ", tag[i]);
     printf("\n\n");
-    
+
+    // Comment from here if you have less than 4 GiB of RAM
 
     printf("\n\n===============================\n\n");
     printf("TEST: p = 4 & m = 4 GiB\n");
@@ -282,6 +283,9 @@ int main(){
         printf("%02X ", memory_test[i]);
     if(!strncmp(memory_test,tag,args.tau))
         printf("\nTest successful.");
+    
+    // Until here
+    
     printf("\n\n===============================\n\n");
 
 }
