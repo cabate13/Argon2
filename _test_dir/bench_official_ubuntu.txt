@@ -1,0 +1,240 @@
+Argon2i 3 iterations  1 MiB 1 threads:  21.53 cpb 21.53 Mcycles 
+Argon2d 3 iterations  1 MiB 1 threads:  19.80 cpb 19.80 Mcycles 
+Argon2id 3 iterations  1 MiB 1 threads:  12.91 cpb 12.91 Mcycles 
+0.0041 seconds
+
+Argon2i 3 iterations  1 MiB 2 threads:  9.22 cpb 9.22 Mcycles 
+Argon2d 3 iterations  1 MiB 2 threads:  8.86 cpb 8.86 Mcycles 
+Argon2id 3 iterations  1 MiB 2 threads:  6.18 cpb 6.18 Mcycles 
+0.0025 seconds
+
+Argon2i 3 iterations  1 MiB 4 threads:  5.21 cpb 5.21 Mcycles 
+Argon2d 3 iterations  1 MiB 4 threads:  4.12 cpb 4.12 Mcycles 
+Argon2id 3 iterations  1 MiB 4 threads:  3.75 cpb 3.75 Mcycles 
+0.0017 seconds
+
+Argon2i 3 iterations  1 MiB 8 threads:  6.83 cpb 6.83 Mcycles 
+Argon2d 3 iterations  1 MiB 8 threads:  6.33 cpb 6.33 Mcycles 
+Argon2id 3 iterations  1 MiB 8 threads:  6.06 cpb 6.06 Mcycles 
+0.0065 seconds
+
+Argon2i 3 iterations  2 MiB 1 threads:  5.76 cpb 11.52 Mcycles 
+Argon2d 3 iterations  2 MiB 1 threads:  5.46 cpb 10.92 Mcycles 
+Argon2id 3 iterations  2 MiB 1 threads:  5.98 cpb 11.96 Mcycles 
+0.0018 seconds
+
+Argon2i 3 iterations  2 MiB 2 threads:  5.19 cpb 10.38 Mcycles 
+Argon2d 3 iterations  2 MiB 2 threads:  4.07 cpb 8.13 Mcycles 
+Argon2id 3 iterations  2 MiB 2 threads:  3.90 cpb 7.80 Mcycles 
+0.0024 seconds
+
+Argon2i 3 iterations  2 MiB 4 threads:  3.30 cpb 6.60 Mcycles 
+Argon2d 3 iterations  2 MiB 4 threads:  2.74 cpb 5.47 Mcycles 
+Argon2id 3 iterations  2 MiB 4 threads:  3.14 cpb 6.29 Mcycles 
+0.0039 seconds
+
+Argon2i 3 iterations  2 MiB 8 threads:  4.93 cpb 9.86 Mcycles 
+Argon2d 3 iterations  2 MiB 8 threads:  6.57 cpb 13.14 Mcycles 
+Argon2id 3 iterations  2 MiB 8 threads:  8.14 cpb 16.29 Mcycles 
+0.0092 seconds
+
+Argon2i 3 iterations  4 MiB 1 threads:  6.17 cpb 24.68 Mcycles 
+Argon2d 3 iterations  4 MiB 1 threads:  5.38 cpb 21.53 Mcycles 
+Argon2id 3 iterations  4 MiB 1 threads:  5.04 cpb 20.16 Mcycles 
+0.0055 seconds
+
+Argon2i 3 iterations  4 MiB 2 threads:  5.23 cpb 20.93 Mcycles 
+Argon2d 3 iterations  4 MiB 2 threads:  3.48 cpb 13.92 Mcycles 
+Argon2id 3 iterations  4 MiB 2 threads:  2.96 cpb 11.82 Mcycles 
+0.0057 seconds
+
+Argon2i 3 iterations  4 MiB 4 threads:  2.65 cpb 10.61 Mcycles 
+Argon2d 3 iterations  4 MiB 4 threads:  2.91 cpb 11.65 Mcycles 
+Argon2id 3 iterations  4 MiB 4 threads:  3.22 cpb 12.88 Mcycles 
+0.0092 seconds
+
+Argon2i 3 iterations  4 MiB 8 threads:  6.09 cpb 24.35 Mcycles 
+Argon2d 3 iterations  4 MiB 8 threads:  5.03 cpb 20.11 Mcycles 
+Argon2id 3 iterations  4 MiB 8 threads:  5.11 cpb 20.43 Mcycles 
+0.0114 seconds
+
+Argon2i 3 iterations  8 MiB 1 threads:  6.76 cpb 54.06 Mcycles 
+Argon2d 3 iterations  8 MiB 1 threads:  6.52 cpb 52.14 Mcycles 
+Argon2id 3 iterations  8 MiB 1 threads:  5.60 cpb 44.77 Mcycles 
+0.0172 seconds
+
+Argon2i 3 iterations  8 MiB 2 threads:  3.65 cpb 29.19 Mcycles 
+Argon2d 3 iterations  8 MiB 2 threads:  3.86 cpb 30.88 Mcycles 
+Argon2id 3 iterations  8 MiB 2 threads:  3.14 cpb 25.10 Mcycles 
+0.0157 seconds
+
+Argon2i 3 iterations  8 MiB 4 threads:  3.72 cpb 29.77 Mcycles 
+Argon2d 3 iterations  8 MiB 4 threads:  3.00 cpb 23.99 Mcycles 
+Argon2id 3 iterations  8 MiB 4 threads:  3.15 cpb 25.22 Mcycles 
+0.0300 seconds
+
+Argon2i 3 iterations  8 MiB 8 threads:  4.76 cpb 38.10 Mcycles 
+Argon2d 3 iterations  8 MiB 8 threads:  4.26 cpb 34.09 Mcycles 
+Argon2id 3 iterations  8 MiB 8 threads:  5.04 cpb 40.31 Mcycles 
+0.0229 seconds
+
+Argon2i 3 iterations  16 MiB 1 threads:  6.19 cpb 99.07 Mcycles 
+Argon2d 3 iterations  16 MiB 1 threads:  5.82 cpb 93.16 Mcycles 
+Argon2id 3 iterations  16 MiB 1 threads:  5.92 cpb 94.66 Mcycles 
+0.0510 seconds
+
+Argon2i 3 iterations  16 MiB 2 threads:  3.82 cpb 61.20 Mcycles 
+Argon2d 3 iterations  16 MiB 2 threads:  3.78 cpb 60.45 Mcycles 
+Argon2id 3 iterations  16 MiB 2 threads:  3.42 cpb 54.66 Mcycles 
+0.0497 seconds
+
+Argon2i 3 iterations  16 MiB 4 threads:  3.32 cpb 53.10 Mcycles 
+Argon2d 3 iterations  16 MiB 4 threads:  3.45 cpb 55.23 Mcycles 
+Argon2id 3 iterations  16 MiB 4 threads:  3.29 cpb 52.73 Mcycles 
+0.0921 seconds
+
+Argon2i 3 iterations  16 MiB 8 threads:  3.51 cpb 56.23 Mcycles 
+Argon2d 3 iterations  16 MiB 8 threads:  3.80 cpb 60.88 Mcycles 
+Argon2id 3 iterations  16 MiB 8 threads:  3.67 cpb 58.74 Mcycles 
+0.0943 seconds
+
+Argon2i 3 iterations  32 MiB 1 threads:  5.88 cpb 188.27 Mcycles 
+Argon2d 3 iterations  32 MiB 1 threads:  6.01 cpb 192.32 Mcycles 
+Argon2id 3 iterations  32 MiB 1 threads:  6.08 cpb 194.45 Mcycles 
+0.1648 seconds
+
+Argon2i 3 iterations  32 MiB 2 threads:  4.14 cpb 132.57 Mcycles 
+Argon2d 3 iterations  32 MiB 2 threads:  4.14 cpb 132.44 Mcycles 
+Argon2id 3 iterations  32 MiB 2 threads:  3.96 cpb 126.72 Mcycles 
+0.1597 seconds
+
+Argon2i 3 iterations  32 MiB 4 threads:  3.65 cpb 116.88 Mcycles 
+Argon2d 3 iterations  32 MiB 4 threads:  3.59 cpb 114.91 Mcycles 
+Argon2id 3 iterations  32 MiB 4 threads:  3.66 cpb 117.05 Mcycles 
+0.2914 seconds
+
+Argon2i 3 iterations  32 MiB 8 threads:  3.89 cpb 124.49 Mcycles 
+Argon2d 3 iterations  32 MiB 8 threads:  3.98 cpb 127.32 Mcycles 
+Argon2id 3 iterations  32 MiB 8 threads:  3.88 cpb 124.22 Mcycles 
+0.2558 seconds
+
+Argon2i 3 iterations  64 MiB 1 threads:  6.02 cpb 385.58 Mcycles 
+Argon2d 3 iterations  64 MiB 1 threads:  5.89 cpb 376.72 Mcycles 
+Argon2id 3 iterations  64 MiB 1 threads:  5.93 cpb 379.30 Mcycles 
+0.4018 seconds
+
+Argon2i 3 iterations  64 MiB 2 threads:  3.81 cpb 243.64 Mcycles 
+Argon2d 3 iterations  64 MiB 2 threads:  3.77 cpb 241.29 Mcycles 
+Argon2id 3 iterations  64 MiB 2 threads:  3.81 cpb 243.72 Mcycles 
+0.4266 seconds
+
+Argon2i 3 iterations  64 MiB 4 threads:  3.58 cpb 229.32 Mcycles 
+Argon2d 3 iterations  64 MiB 4 threads:  3.56 cpb 227.80 Mcycles 
+Argon2id 3 iterations  64 MiB 4 threads:  3.52 cpb 225.23 Mcycles 
+0.7021 seconds
+
+Argon2i 3 iterations  64 MiB 8 threads:  3.57 cpb 228.64 Mcycles 
+Argon2d 3 iterations  64 MiB 8 threads:  3.62 cpb 231.89 Mcycles 
+Argon2id 3 iterations  64 MiB 8 threads:  3.61 cpb 230.84 Mcycles 
+0.6413 seconds
+
+Argon2i 3 iterations  128 MiB 1 threads:  6.00 cpb 768.34 Mcycles 
+Argon2d 3 iterations  128 MiB 1 threads:  5.95 cpb 761.57 Mcycles 
+Argon2id 3 iterations  128 MiB 1 threads:  5.89 cpb 754.11 Mcycles 
+0.8608 seconds
+
+Argon2i 3 iterations  128 MiB 2 threads:  3.82 cpb 489.27 Mcycles 
+Argon2d 3 iterations  128 MiB 2 threads:  3.80 cpb 486.74 Mcycles 
+Argon2id 3 iterations  128 MiB 2 threads:  3.77 cpb 482.94 Mcycles 
+0.9863 seconds
+
+Argon2i 3 iterations  128 MiB 4 threads:  3.48 cpb 445.01 Mcycles 
+Argon2d 3 iterations  128 MiB 4 threads:  3.47 cpb 444.14 Mcycles 
+Argon2id 3 iterations  128 MiB 4 threads:  3.44 cpb 440.75 Mcycles 
+1.6721 seconds
+
+Argon2i 3 iterations  128 MiB 8 threads:  3.54 cpb 453.72 Mcycles 
+Argon2d 3 iterations  128 MiB 8 threads:  3.52 cpb 450.09 Mcycles 
+Argon2id 3 iterations  128 MiB 8 threads:  3.49 cpb 446.89 Mcycles 
+1.5426 seconds
+
+Argon2i 3 iterations  256 MiB 1 threads:  5.89 cpb 1509.23 Mcycles 
+Argon2d 3 iterations  256 MiB 1 threads:  5.84 cpb 1496.09 Mcycles 
+Argon2id 3 iterations  256 MiB 1 threads:  5.91 cpb 1512.08 Mcycles 
+1.7563 seconds
+
+Argon2i 3 iterations  256 MiB 2 threads:  3.87 cpb 990.52 Mcycles 
+Argon2d 3 iterations  256 MiB 2 threads:  3.76 cpb 961.99 Mcycles 
+Argon2id 3 iterations  256 MiB 2 threads:  3.78 cpb 967.54 Mcycles 
+2.1303 seconds
+
+Argon2i 3 iterations  256 MiB 4 threads:  3.44 cpb 879.69 Mcycles 
+Argon2d 3 iterations  256 MiB 4 threads:  3.42 cpb 876.10 Mcycles 
+Argon2id 3 iterations  256 MiB 4 threads:  3.41 cpb 873.48 Mcycles 
+3.6354 seconds
+
+Argon2i 3 iterations  256 MiB 8 threads:  3.59 cpb 920.36 Mcycles 
+Argon2d 3 iterations  256 MiB 8 threads:  3.57 cpb 913.72 Mcycles 
+Argon2id 3 iterations  256 MiB 8 threads:  3.60 cpb 920.69 Mcycles 
+3.2706 seconds
+
+Argon2i 3 iterations  512 MiB 1 threads:  5.87 cpb 3004.26 Mcycles 
+Argon2d 3 iterations  512 MiB 1 threads:  5.84 cpb 2992.40 Mcycles 
+Argon2id 3 iterations  512 MiB 1 threads:  5.89 cpb 3018.04 Mcycles 
+3.5731 seconds
+
+Argon2i 3 iterations  512 MiB 2 threads:  3.74 cpb 1915.73 Mcycles 
+Argon2d 3 iterations  512 MiB 2 threads:  3.77 cpb 1931.02 Mcycles 
+Argon2id 3 iterations  512 MiB 2 threads:  3.74 cpb 1914.72 Mcycles 
+4.3456 seconds
+
+Argon2i 3 iterations  512 MiB 4 threads:  3.42 cpb 1753.68 Mcycles 
+Argon2d 3 iterations  512 MiB 4 threads:  3.42 cpb 1749.77 Mcycles 
+Argon2id 3 iterations  512 MiB 4 threads:  3.42 cpb 1750.46 Mcycles 
+7.6545 seconds
+
+Argon2i 3 iterations  512 MiB 8 threads:  3.50 cpb 1793.25 Mcycles 
+Argon2d 3 iterations  512 MiB 8 threads:  3.50 cpb 1792.54 Mcycles 
+Argon2id 3 iterations  512 MiB 8 threads:  3.51 cpb 1798.79 Mcycles 
+7.2133 seconds
+
+Argon2i 3 iterations  1024 MiB 1 threads:  5.88 cpb 6023.39 Mcycles 
+Argon2d 3 iterations  1024 MiB 1 threads:  5.90 cpb 6040.31 Mcycles 
+Argon2id 3 iterations  1024 MiB 1 threads:  5.90 cpb 6044.07 Mcycles 
+7.2503 seconds
+
+Argon2i 3 iterations  1024 MiB 2 threads:  3.69 cpb 3778.89 Mcycles 
+Argon2d 3 iterations  1024 MiB 2 threads:  3.73 cpb 3816.52 Mcycles 
+Argon2id 3 iterations  1024 MiB 2 threads:  3.75 cpb 3839.15 Mcycles 
+8.7634 seconds
+
+Argon2i 3 iterations  1024 MiB 4 threads:  3.42 cpb 3505.60 Mcycles 
+Argon2d 3 iterations  1024 MiB 4 threads:  3.41 cpb 3490.29 Mcycles 
+Argon2id 3 iterations  1024 MiB 4 threads:  3.41 cpb 3487.83 Mcycles 
+15.6741 seconds
+
+Argon2i 3 iterations  1024 MiB 8 threads:  3.48 cpb 3566.02 Mcycles 
+Argon2d 3 iterations  1024 MiB 8 threads:  3.47 cpb 3553.33 Mcycles 
+Argon2id 3 iterations  1024 MiB 8 threads:  3.47 cpb 3552.23 Mcycles 
+14.9480 seconds
+
+Argon2i 3 iterations  2048 MiB 1 threads:  5.92 cpb 12122.48 Mcycles 
+Argon2d 3 iterations  2048 MiB 1 threads:  5.92 cpb 12122.59 Mcycles 
+Argon2id 3 iterations  2048 MiB 1 threads:  5.91 cpb 12112.47 Mcycles 
+14.6292 seconds
+
+Argon2i 3 iterations  2048 MiB 2 threads:  3.90 cpb 7978.03 Mcycles 
+Argon2d 3 iterations  2048 MiB 2 threads:  3.74 cpb 7654.17 Mcycles 
+Argon2id 3 iterations  2048 MiB 2 threads:  3.70 cpb 7579.43 Mcycles 
+17.8879 seconds
+
+Argon2i 3 iterations  2048 MiB 4 threads:  3.44 cpb 7055.48 Mcycles 
+Argon2d 3 iterations  2048 MiB 4 threads:  3.41 cpb 6980.57 Mcycles 
+Argon2id 3 iterations  2048 MiB 4 threads:  3.42 cpb 6995.70 Mcycles 
+31.6263 seconds
+
+Argon2i 3 iterations  2048 MiB 8 threads:  3.48 cpb 7131.54 Mcycles 
+Argon2d 3 iterations  2048 MiB 8 threads:  3.46 cpb 7093.52 Mcycles 
+Argon2id 3 iterations  2048 MiB 8 threads:  3.47 cpb 7106.18 Mcycles 
+30.5405 seconds
+
