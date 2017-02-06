@@ -1,0 +1,104 @@
+===============================
+
+
+TEST: p = 4 & m = 32
+
+
+===============================
+
+Argon2d test: 
+tag: 51 2B 39 1B 6F 11 62 97 53 71 D3 09 19 73 42 94 F8 68 E3 BE 39 84 F3 C1 A1 3A 4D B9 FA BE 4A CB 
+kat: 51 2B 39 1B 6F 11 62 97 53 71 D3 09 19 73 42 94 F8 68 E3 BE 39 84 F3 C1 A1 3A 4D B9 FA BE 4A CB 
+Test successful.
+
+===============================
+
+Argon2i test: 
+tag: C8 14 D9 D1 DC 7F 37 AA 13 F0 D7 7F 24 94 BD A1 C8 DE 6B 01 6D D3 88 D2 99 52 A4 C4 67 2B 6C E8 
+kat: C8 14 D9 D1 DC 7F 37 AA 13 F0 D7 7F 24 94 BD A1 C8 DE 6B 01 6D D3 88 D2 99 52 A4 C4 67 2B 6C E8 
+Test successful.
+
+===============================
+
+Argon2id test: 
+tag: 0D 64 0D F5 8D 78 76 6C 08 C0 37 A3 4A 8B 53 C9 D0 1E F0 45 2D 75 B6 5E B5 25 20 E9 6B 01 E6 59 
+akt: 0D 64 0D F5 8D 78 76 6C 08 C0 37 A3 4A 8B 53 C9 D0 1E F0 45 2D 75 B6 5E B5 25 20 E9 6B 01 E6 59 
+Test successful.
+
+===============================
+
+Argon2ds test: 
+tag: 61 26 3B 04 01 99 81 19 28 AA 53 D5 46 9C BA 54 54 F8 81 E2 9A C0 0B C6 A0 80 08 D7 78 9E 23 43 
+
+
+
+===============================
+
+
+TEST: p = 5 & m = 2601
+
+
+===============================
+
+Argon2d test: 
+tag: F3 17 84 0D 31 43 FE DB 5C 91 6C C5 90 51 66 60 F6 83 08 46 38 32 E6 20 C3 B0 1E 57 7E 27 6B DD 
+kat: F3 17 84 0D 31 43 FE DB 5C 91 6C C5 90 51 66 60 F6 83 08 46 38 32 E6 20 C3 B0 1E 57 7E 27 6B DD 
+Test successful.
+
+===============================
+
+Argon2i test: 
+tag: DC 22 95 AF 5F 5E 9E CE 87 25 1C 42 72 35 BC 25 FC 9F 60 4A BD 77 DC 4A 70 57 60 A2 93 FB 4B ED 
+kat: DC 22 95 AF 5F 5E 9E CE 87 25 1C 42 72 35 BC 25 FC 9F 60 4A BD 77 DC 4A 70 57 60 A2 93 FB 4B ED 
+Test successful.
+
+===============================
+
+Argon2id test: 
+tag: E8 00 A4 0D 4F DE 5B 25 53 5E 5C F7 96 05 CC 5C 04 3C 4C C2 69 34 2D 80 54 07 09 D1 74 C1 F9 A5 
+kat: E8 00 A4 0D 4F DE 5B 25 53 5E 5C F7 96 05 CC 5C 04 3C 4C C2 69 34 2D 80 54 07 09 D1 74 C1 F9 A5 
+Test successful.
+
+===============================
+
+Argon2ds test: 
+tag: F8 DF AD 98 4F 52 B5 75 31 70 48 0E 94 B5 66 79 41 7F C9 16 6B 9F A7 7D DA CE 6A C5 CC 62 77 D4 
+
+
+
+===============================
+
+
+TEST: p = 4 & m = 65536
+
+
+===============================
+
+Argon2d test: 
+tag: BA 79 E5 47 42 5E B4 7B D7 7C 22 51 D4 DF 02 9C 32 C5 C5 F7 76 92 C7 84 EB C1 1B 8F E7 8A B5 09 
+kat: BA 79 E5 47 42 5E B4 7B D7 7C 22 51 D4 DF 02 9C 32 C5 C5 F7 76 92 C7 84 EB C1 1B 8F E7 8A B5 09 
+Test successful.
+
+===============================
+
+Argon2i test: 
+tag: 80 F2 82 95 C9 74 AD 00 6D 74 97 01 DC 38 F1 62 B0 EE 11 8B D7 B9 07 43 37 9E B7 C0 78 CE 95 DC 
+kat: 80 F2 82 95 C9 74 AD 00 6D 74 97 01 DC 38 F1 62 B0 EE 11 8B D7 B9 07 43 37 9E B7 C0 78 CE 95 DC 
+Test successful.
+
+===============================
+
+Argon2id test: 
+tag: 47 A6 77 EB C6 84 12 B8 E1 79 49 C9 21 FD CA 06 53 52 11 4F FB 2A 09 EE BE 61 AD C4 51 EE CF 1E 
+kat: 47 A6 77 EB C6 84 12 B8 E1 79 49 C9 21 FD CA 06 53 52 11 4F FB 2A 09 EE BE 61 AD C4 51 EE CF 1E 
+Test successful.
+
+===============================
+
+Argon2ds test: 
+tag: 66 99 D5 6A 31 78 BA 67 9C 8A 27 C5 06 E2 6D A3 67 B0 45 A9 D6 38 29 43 22 D6 87 4D 1B C0 6F D9 
+
+
+
+===============================
+
