@@ -5,7 +5,7 @@ BAD_MEMORY_FLAGS = -g -std=c99
 CC = gcc
 UNAME_S := $(shell uname -s)
 SRC = Blake2b.o Argon2_compression.o Argon2_matrix.o Argon2_body.o
-DST = Argon2 
+DST = Argon2
 
 # Handle debug version
 ifeq ($(debug), 1)
